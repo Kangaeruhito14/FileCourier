@@ -121,10 +121,11 @@
       msgRecvCxl:   'You cancelled the download.\nThe partially received file has been discarded.',
 
       /* Relay prompt (shown after ICE fails) */
-      relayHintTitle:  'Connection is taking longer than expected',
-      relayHintDesc:   'You may be behind a strict network or mobile hotspot.\nClick below to use a relay server — the connection will work but may be slightly slower.',
-      relayHintBtn:    'Connect via Relay',
-      relayActive:     'Relay mode active',
+      relayHintTitle:     'Connection is taking longer than expected',
+      relayHintDesc:      'You may be behind a strict network or mobile hotspot.\nClick below to use a relay server — the connection will work but may be slightly slower.',
+      relayHintDescSender:'Connection is slow to establish. If your friend\'s screen also shows this message, ask them to click "Connect via Relay" on their side.',
+      relayHintBtn:       'Connect via Relay',
+      relayActive:        'Relay mode active',
     },
 
     /* ── BENGALI / বাংলা ──────────────────────────────────────────────── */
@@ -228,10 +229,11 @@
       msgRecvCxl:   'আপনি ডাউনলোড বাতিল করেছেন।\nআংশিক ফাইলটি বাদ দেওয়া হয়েছে।',
 
       /* Relay prompt */
-      relayHintTitle: 'কানেকশন হতে অনেক সময় লাগছে',
-      relayHintDesc:  'আপনি হয়তো কঠিন নেটওয়ার্ক বা মোবাইল হটস্পটে আছেন।\nরিলে সার্ভার ব্যবহার করলে কানেকশন হবে, তবে সামান্য ধীর হতে পারে।',
-      relayHintBtn:   'রিলে দিয়ে কানেক্ট করুন',
-      relayActive:    'রিলে মোড সক্রিয়',
+      relayHintTitle:     'কানেকশন হতে অনেক সময় লাগছে',
+      relayHintDesc:      'আপনি হয়তো কঠিন নেটওয়ার্ক বা মোবাইল হটস্পটে আছেন।\nরিলে সার্ভার ব্যবহার করলে কানেকশন হবে, তবে সামান্য ধীর হতে পারে।',
+      relayHintDescSender:'কানেকশন স্থাপন হতে দেরি হচ্ছে। আপনার বন্ধুর স্ক্রিনেও যদি এই বার্তা দেখায়, তাদের তাদের পর্দায় "রিলে দিয়ে কানেক্ট করুন" বোতামে ক্লিক করতে বলুন।',
+      relayHintBtn:       'রিলে দিয়ে কানেক্ট করুন',
+      relayActive:        'রিলে মোড সক্রিয়',
     },
   };
 
