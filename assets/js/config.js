@@ -12,15 +12,16 @@
   'use strict';
 
   /* ── SIGNALING SERVER ────────────────────────────────────────────────────
-   * By default, the free PeerJS cloud server is used (0.peerjs.com).
-   * For better reliability — especially on mobile networks in South/South-East
-   * Asia — deploy the bundled peerserver to Render.com (free tier) and set
-   * PEER_HOST to your Render URL.
+   * FC.PEER_HOST = '' (empty) → use the PeerJS public cloud (0.peerjs.com).
+   *   Always running, no cold start, globally reachable. Recommended default.
    *
-   * Example:
-   *   FC.PEER_HOST = 'my-peerserver.onrender.com';
+   * FC.PEER_HOST = 'your-app.onrender.com' → use a self-hosted PeerJS server.
+   *   Better for guaranteed uptime / private deployments, but Render free tier
+   *   spins down after 15 min of inactivity (cold start ≈ 30–60 s), which
+   *   causes ALL connections — including same-WiFi — to hang until it wakes.
+   *   Only use a custom host if it is always-on (paid tier or self-managed VPS).
    * ──────────────────────────────────────────────────────────────────────── */
-  FC.PEER_HOST   = 'filecourier.onrender.com';
+  FC.PEER_HOST   = '';     // '' = PeerJS cloud; set to your Render URL to self-host
   FC.PEER_PORT   = 443;
   FC.PEER_PATH   = '/peerjs';
   FC.PEER_SECURE = true;
@@ -86,18 +87,6 @@
       credential: 'openrelayproject',
     },
 
-    // FrsTURN — secondary free TURN provider; increases the chance of finding
-    // a reachable relay when openrelay.metered.ca is blocked by the carrier.
-    {
-      urls:       'turn:freeturn.net:3478',
-      username:   'free',
-      credential: 'free',
-    },
-    {
-      urls:       'turns:freeturn.net:5349',
-      username:   'free',
-      credential: 'free',
-    },
   ];
 
   /* ── TRANSFER SETTINGS ──────────────────────────────────────────────────
@@ -119,9 +108,10 @@
    * CANCEL_FLUSH_MS   : How long to wait for a cancel message to send before
    *                     forcibly closing the data channel.
    * ──────────────────────────────────────────────────────────────────────── */
-  FC.ICE_RELAY_HINT_MS = 8000;
-  FC.PEER_RECONNECT_MS = 2000;
-  FC.CANCEL_FLUSH_MS   = 400;
+  FC.ICE_RELAY_HINT_MS   = 8000;
+  FC.PEER_RECONNECT_MS   = 2000;
+  FC.CANCEL_FLUSH_MS     = 400;
+  FC.PEER_OPEN_TIMEOUT_MS = 15000; // Show error if signaling server doesn't respond
 
   /* ── STREAMSAVER ────────────────────────────────────────────────────────
    * MITM page URL for the service-worker download proxy.
