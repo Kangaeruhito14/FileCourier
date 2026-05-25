@@ -20,7 +20,7 @@
    * Example:
    *   FC.PEER_HOST = 'my-peerserver.onrender.com';
    * ──────────────────────────────────────────────────────────────────────── */
-  FC.PEER_HOST   = null;   // null = use PeerJS cloud; set to your Render hostname
+  FC.PEER_HOST   = 'filecourier.onrender.com';
   FC.PEER_PORT   = 443;
   FC.PEER_PATH   = '/peerjs';
   FC.PEER_SECURE = true;
