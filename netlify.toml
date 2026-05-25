@@ -1,0 +1,33 @@
+################################################################################
+# FileCourier — Netlify Configuration
+# Handles pretty-URLs, security headers, and backward-compatible link redirects.
+################################################################################
+
+[build]
+  publish = "."
+
+# ── Security headers applied to every response ──────────────────────────────
+[[headers]]
+  for = "/*"
+  [headers.values]
+    X-Frame-Options           = "DENY"
+    X-Content-Type-Options    = "nosniff"
+    Referrer-Policy           = "strict-origin-when-cross-origin"
+    Permissions-Policy        = "camera=(), microphone=(), geolocation=()"
+
+# ── Pretty URL: /app → /app.html (200 rewrite, not redirect) ────────────────
+[[redirects]]
+  from   = "/app"
+  to     = "/app.html"
+  status = 200
+
+# ── Backward compat: old links used /?to=<id> (index was the app).
+#    Now index is the landing page, so forward those links to /app.html.
+#    Netlify cannot match arbitrary query strings in `from`, so we use a
+#    client-side redirect script inside index.html instead.
+#    This rule ensures /app.html exists cleanly as the canonical app URL.
+[[redirects]]
+  from   = "/index.html"
+  to     = "/"
+  status = 301
+  force  = false
