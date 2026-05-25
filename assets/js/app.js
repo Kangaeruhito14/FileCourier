@@ -754,6 +754,20 @@
     relayShown = true;
     var wrap = ge('relay-hint-wrap');
     if (!wrap) { return; }
+
+    if (isSender) {
+      /* Sender must NOT get a relay button — clicking it would destroy the peer and
+         generate a new peer ID, invalidating every share link already sent out.
+         Show an advisory instead: ask the receiver to click relay on their screen. */
+      wrap.innerHTML =
+        '<div class="relay-hint visible">' +
+          '<div class="relay-hint-title">' + t('relayHintTitle') + '</div>' +
+          '<div class="relay-hint-desc">' + esc(t('relayHintDescSender')) + '</div>' +
+        '</div>';
+      return;
+    }
+
+    /* Receiver: offer the relay button */
     wrap.innerHTML =
       '<div class="relay-hint visible">' +
         '<div class="relay-hint-title">' + t('relayHintTitle') + '</div>' +
@@ -772,6 +786,10 @@
   }
 
   function retryRelay() {
+    /* retryRelay() is only reachable from the RECEIVER side — sender gets an
+       advisory notice with no button, so this function is never called when
+       isSender is true.  Destroying the sender's peer would generate a new peer
+       ID and break every share link that was already sent out. */
     useRelay   = true;
     relayShown = false;
     clearIceTimer();
@@ -785,12 +803,9 @@
     closeConn();
     if (peer) { try { peer.destroy(); } catch (e) {} peer = null; }
 
+    /* Reconnect to the same sender peer ID with iceTransportPolicy:'relay' */
     var targetId = new URLSearchParams(location.search).get('to');
-    if (targetId) {
-      startReceiverMode(targetId);
-    } else {
-      startSenderMode();
-    }
+    if (targetId) { startReceiverMode(targetId); }
   }
 
   /* ══════════════════════════════════════════════════════════════
