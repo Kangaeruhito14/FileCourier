@@ -77,8 +77,10 @@
       sProtoErr:    'Protocol error',
       sBadBrowser:  'Incompatible browser',
       sSaveCxl:     'Save cancelled — refresh to retry',
-      sReconnecting:'Reconnecting to server...',
-      sCancelled:   'Transfer cancelled',
+      sReconnecting:  'Reconnecting to server...',
+      sCancelled:     'Transfer cancelled',
+      sServerTimeout: 'Signaling Server Unavailable',
+      msgServerTimeout: 'Could not connect to the signaling server within 15 seconds. Check your internet connection and refresh the page to try again.',
 
       /* Sender UI */
       step1Label:   'Step 1 — Select a file, then share the link',
@@ -187,8 +189,10 @@
       sProtoErr:    'প্রোটোকল ত্রুটি',
       sBadBrowser:  'ব্রাউজার সাপোর্টেড নয়',
       sSaveCxl:     'সেভ বাতিল — পুনরায় চেষ্টা করতে রিফ্রেশ করুন',
-      sReconnecting:'সার্ভারে পুনরায় কানেক্ট হচ্ছে...',
-      sCancelled:   'ট্রান্সফার বাতিল',
+      sReconnecting:  'সার্ভারে পুনরায় কানেক্ট হচ্ছে...',
+      sCancelled:     'ট্রান্সফার বাতিল',
+      sServerTimeout: 'সিগনালিং সার্ভার পাওয়া যাচ্ছে না',
+      msgServerTimeout: '১৫ সেকেন্ডের মধ্যে সিগনালিং সার্ভারে কানেক্ট করা যায়নি। ইন্টারনেট কানেকশন পরীক্ষা করুন এবং পেজ রিফ্রেশ করে পুনরায় চেষ্টা করুন।',
 
       /* Sender UI */
       step1Label:   'ধাপ ১ — ফাইল বেছে নিন, তারপর লিংক শেয়ার করুন',
