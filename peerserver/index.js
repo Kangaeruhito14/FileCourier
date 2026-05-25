@@ -33,21 +33,15 @@ var { PeerServer } = require('peer');
 var PORT = parseInt(process.env.PORT, 10) || 9000;
 
 var server = PeerServer({
-  port:  PORT,
-  path:  '/peerjs',
+  port: PORT,
+  path: '/peerjs',
 
   /*
-   * Allow every peer ID. In a production multi-tenant app you would validate
-   * here, but for FileCourier's personal-use model, open access is fine.
-   */
-  allow_discovery: false,
-
-  /*
-   * Stale peer cleanup — remove peers that have not pinged the server for
+   * Stale peer cleanup — remove peers that have not sent a heartbeat for
    * more than 5 minutes. Prevents memory growth on the free Render instance.
+   * alive_timeout is still supported in peer v1.x.
    */
-  alive_timeout:    300000,   // 5 min
-  cleanup_out_msgs: 1000,
+  alive_timeout: 300000,   // 5 min
 });
 
 server.on('connection', function (client) {
