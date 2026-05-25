@@ -96,10 +96,26 @@
 
   function createPeer(onOpen) {
     if (peer) { try { peer.destroy(); } catch (e) {} peer = null; }
+    myPeerId = null;
 
     peer = new Peer(buildPeerOptions());
 
+    /* If the signaling server doesn't respond within FC.PEER_OPEN_TIMEOUT_MS,
+       show a clear error instead of looping forever on "Connecting…".
+       Most common cause: self-hosted server cold-starting (Render free tier). */
+    var openTimer = setTimeout(function () {
+      if (!myPeerId) {
+        setRoot(resultPanel(
+          '&#9888;',
+          t('sServerTimeout'),
+          t('msgServerTimeout'),
+          '<button class="btn btn-primary" onclick="location.reload()">' + t('btnRetry') + '</button>'
+        ));
+      }
+    }, FC.PEER_OPEN_TIMEOUT_MS);
+
     peer.on('open', function (id) {
+      clearTimeout(openTimer);
       myPeerId = id;
       if (typeof onOpen === 'function') { onOpen(id); }
     });
@@ -112,11 +128,11 @@
     });
 
     peer.on('error', function (err) {
+      clearTimeout(openTimer);
       var type = err.type || '';
       if (type === 'peer-unavailable') { clearIceTimer(); showNoConn(); return; }
       if (type === 'network' || type === 'server-error' || type === 'socket-error') {
         setStatus(FC.t('sNetErr', err.message || type), 'error');
-        /* Render free tier cold start: server returns 503, auto-retry after 3 s */
         setTimeout(function () {
           if (peer && !peer.destroyed) { peer.reconnect(); }
         }, 3000);
