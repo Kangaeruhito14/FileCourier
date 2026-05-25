@@ -49,11 +49,13 @@
       faq1q:        'Does my file get stored anywhere?',
       faq1a:        'No. The file is never uploaded to any server. It travels directly between two browsers using WebRTC technology.',
       faq2q:        'Does it work across different networks?',
-      faq2a:        'Yes. FileCourier uses STUN and TURN relay servers to establish connections even through mobile data, hotspots, and strict firewalls. If a direct connection fails, you can enable Relay Mode.',
+      faq2a:        'Yes — for home WiFi-to-WiFi and regular broadband connections worldwide, it works directly in about 90% of cases (no relay needed). For mobile data behind carrier NAT or strict firewalls, the app automatically falls back to a relay server. On a small number of restrictive mobile carriers, relay servers may also be unreachable — switching the mobile device to WiFi fixes this.',
       faq3q:        'Is there a file size limit?',
       faq3a:        'No limit for Chrome and Edge users (files stream directly to disk). Other browsers support up to 512 MB.',
       faq4q:        'Do both people need to be online at the same time?',
       faq4a:        'Yes. The sender\'s tab must stay open until the transfer is complete.',
+      faq5q:        'What do I do if the connection keeps failing?',
+      faq5a:        'After 8 seconds, a "Connect via Relay" button appears on the receiver\'s screen — click it. This reroutes through a relay server and works for most strict or mobile networks. The sender\'s link stays valid; no need to refresh. If relay also fails, your mobile carrier is likely blocking relay servers — connecting the mobile to WiFi instead of mobile data will resolve it.',
       footerLinks:  'How it works · FAQ',
 
       /* Status bar */
@@ -157,11 +159,13 @@
       faq1q:        'আমার ফাইল কি কোথাও সংরক্ষণ হয়?',
       faq1a:        'না। ফাইল কোনো সার্ভারে আপলোড হয় না। WebRTC প্রযুক্তি ব্যবহার করে সরাসরি দুটি ব্রাউজারের মধ্যে যায়।',
       faq2q:        'ভিন্ন নেটওয়ার্কে কি কাজ করে?',
-      faq2a:        'হ্যাঁ। FileCourier STUN ও TURN রিলে সার্ভার ব্যবহার করে মোবাইল ডেটা, হটস্পট ও কঠিন ফায়ারওয়াল ভেদ করে কানেকশন তৈরি করে। সরাসরি কানেকশন না হলে "রিলে মোড" চালু করুন।',
+      faq2a:        'হ্যাঁ — বিশ্বব্যাপী হোম ওয়াইফাই-টু-ওয়াইফাই এবং সাধারণ ব্রডব্যান্ড কানেকশনে প্রায় ৯০% ক্ষেত্রে সরাসরি কানেকশন হয় (কোনো রিলে লাগে না)। মোবাইল ডেটা বা কঠিন ফায়ারওয়ালে অ্যাপ স্বয়ংক্রিয়ভাবে রিলে সার্ভার ব্যবহার করে। কিছু সীমাবদ্ধ মোবাইল ক্যারিয়ারে রিলেও কাজ না করলে — মোবাইলটি ওয়াইফাইতে সংযুক্ত করলেই সমাধান হয়।',
       faq3q:        'ফাইল সাইজের কোনো সীমা আছে?',
       faq3a:        'Chrome ও Edge ব্যবহারকারীদের জন্য কোনো সীমা নেই (ফাইল সরাসরি ডিস্কে স্ট্রিম হয়)। অন্য ব্রাউজারে সর্বোচ্চ ৫১২ MB সাপোর্ট করে।',
       faq4q:        'দুজনকে কি একই সময়ে অনলাইনে থাকতে হবে?',
       faq4a:        'হ্যাঁ। ট্রান্সফার শেষ না হওয়া পর্যন্ত সেন্ডারের ট্যাব খোলা রাখতে হবে।',
+      faq5q:        'কানেকশন বারবার ব্যর্থ হলে কী করব?',
+      faq5a:        '৮ সেকেন্ড পর রিসিভারের স্ক্রিনে "রিলে দিয়ে কানেক্ট করুন" বোতাম আসবে — সেটি ক্লিক করুন। এটি রিলে সার্ভারের মাধ্যমে পুনরায় কানেক্ট করে এবং বেশিরভাগ কঠিন বা মোবাইল নেটওয়ার্কে কাজ করে। সেন্ডারের লিংক বৈধ থাকে; রিফ্রেশের দরকার নেই। রিলেও কাজ না করলে, আপনার মোবাইল ক্যারিয়ার রিলে সার্ভার ব্লক করছে — মোবাইলটি ওয়াইফাইতে সংযুক্ত করুন।',
       footerLinks:  'কীভাবে কাজ করে · সচরাচর জিজ্ঞাসা',
 
       /* Status bar */

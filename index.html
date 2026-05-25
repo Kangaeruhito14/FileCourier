@@ -169,7 +169,7 @@ Your file goes straight from your device to your friend's.
             <i class="faq-chevron" aria-hidden="true">&#9660;</i>
           </button>
           <p class="faq-a" data-i18n="faq2a">
-            Yes. FileCourier uses STUN and TURN relay servers to establish connections even through mobile data, hotspots, and strict firewalls. If a direct connection fails, you can enable Relay Mode.
+            Yes — for home WiFi-to-WiFi and regular broadband connections worldwide, it works directly in about 90% of cases (no relay needed). For mobile data behind carrier NAT or strict firewalls, the app automatically falls back to a relay server. On a small number of restrictive mobile carriers, relay servers may also be unreachable — switching the mobile device to WiFi fixes this.
           </p>
         </div>
 
@@ -190,6 +190,16 @@ Your file goes straight from your device to your friend's.
           </button>
           <p class="faq-a" data-i18n="faq4a">
             Yes. The sender's tab must stay open until the transfer is complete.
+          </p>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-q" aria-expanded="false">
+            <span data-i18n="faq5q">What do I do if the connection keeps failing?</span>
+            <i class="faq-chevron" aria-hidden="true">&#9660;</i>
+          </button>
+          <p class="faq-a" data-i18n="faq5a">
+            After 8 seconds, a "Connect via Relay" button appears on the receiver's screen — click it. This reroutes through a relay server and works for most strict or mobile networks. The sender's link stays valid; no need to refresh. If relay also fails, your mobile carrier is likely blocking relay servers — connecting the mobile to WiFi instead of mobile data will resolve it.
           </p>
         </div>
 
