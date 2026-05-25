@@ -113,9 +113,13 @@
 
     peer.on('error', function (err) {
       var type = err.type || '';
-      if (type === 'peer-unavailable') { showNoConn(); return; }
+      if (type === 'peer-unavailable') { clearIceTimer(); showNoConn(); return; }
       if (type === 'network' || type === 'server-error' || type === 'socket-error') {
         setStatus(FC.t('sNetErr', err.message || type), 'error');
+        /* Render free tier cold start: server returns 503, auto-retry after 3 s */
+        setTimeout(function () {
+          if (peer && !peer.destroyed) { peer.reconnect(); }
+        }, 3000);
         return;
       }
       setStatus(FC.t('sConnErr', type), 'error');
@@ -138,8 +142,12 @@
     });
 
     peer.on('connection', function (c) {
-      if (conn) { c.close(); return; }
+      /* Only block if a transfer is actually in progress (conn.open = true).
+         If the previous ICE attempt left a zombie (open=false), replace it. */
+      if (conn && conn.open) { c.close(); return; }
+      if (conn) { try { conn.close(); } catch (e) {} }
       conn = c;
+      startIceTimer();  // start countdown before open fires
       hookSenderConn(c);
     });
   }
@@ -272,7 +280,7 @@
 
   function hookSenderConn(c) {
     c.on('open', function () {
-      startIceTimer();
+      clearIceTimer();   // ICE succeeded — cancel the relay hint countdown
       watchIce(c);
       if (selectedFile) {
         beginSend(selectedFile);
@@ -291,15 +299,24 @@
     });
 
     c.on('close', function () {
+      clearIceTimer();
       if (sending && !sendCancelled) {
         sendCancelled = true;
         showSendError(FC.t('sRecvDc'));
+      } else if (!sending) {
+        /* ICE failed / receiver closed before transfer — reset so sender
+           can accept the next connection attempt without a page refresh. */
+        conn = null;
+        if (myPeerId) { renderSenderStep1(myPeerId); }
       }
     });
 
     c.on('error', function (err) {
+      clearIceTimer();
       if (sending && !sendCancelled) {
         showSendError(err.message || FC.t('sSendErr'));
+      } else if (!sending) {
+        conn = null;
       }
     });
   }
@@ -430,6 +447,7 @@
     createPeer(function () {
       var c = peer.connect(senderId, { reliable: true, serialization: 'binary' });
       conn = c;
+      startIceTimer();  // start countdown before open fires
       hookReceiverConn(c);
     });
   }
@@ -519,7 +537,7 @@
 
   function hookReceiverConn(c) {
     c.on('open', function () {
-      startIceTimer();
+      clearIceTimer();   // ICE succeeded — cancel the relay hint countdown
       watchIce(c);
     });
 
@@ -528,12 +546,14 @@
     });
 
     c.on('close', function () {
+      clearIceTimer();
       if (!recvCancelled && receivedBytes > 0 && receivedBytes < expectedBytes) {
         setStatus(FC.t('sInterrupted'), 'error');
       }
     });
 
     c.on('error', function (err) {
+      clearIceTimer();
       setStatus(FC.t('sConnErr', err.message || ''), 'error');
     });
   }
