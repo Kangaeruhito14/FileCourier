@@ -98,7 +98,7 @@
    * CANCEL_FLUSH_MS   : How long to wait for a cancel message to send before
    *                     forcibly closing the data channel.
    * ──────────────────────────────────────────────────────────────────────── */
-  FC.ICE_RELAY_HINT_MS = 15000;
+  FC.ICE_RELAY_HINT_MS = 8000;
   FC.PEER_RECONNECT_MS = 2000;
   FC.CANCEL_FLUSH_MS   = 400;
 
