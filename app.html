@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FileCourier — Private P2P File Transfer</title>
+  <meta name="description" content="Transfer files directly between devices. No cloud. No storage. No size limits.">
+  <!-- Prevent search engines from indexing the app page -->
+  <meta name="robots" content="noindex, nofollow">
+
+  <!-- Preconnect for fonts (loaded in style.css @import) -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link rel="stylesheet" href="assets/css/style.css">
+
+  <!--
+    PeerJS  1.5.4 — WebRTC signaling abstraction
+    Load before app.js so `Peer` is available globally.
+  -->
+  <script src="https://unpkg.com/peerjs@1.5.4/dist/peerjs.min.js" defer></script>
+
+  <!--
+    StreamSaver 2.0.6 — service-worker-based stream-to-disk writer.
+    Enables unlimited file size on Chrome/Edge without loading into RAM.
+    Must load before app.js; uses window.streamSaver namespace.
+  -->
+  <script src="https://cdn.jsdelivr.net/npm/streamsaver@2.0.6/StreamSaver.js" defer></script>
+
+  <!--
+    App scripts loaded in dependency order:
+      1. config.js  — FC.ICE, FC.CHUNK_SIZE, FC.PEER_HOST, …
+      2. i18n.js    — FC.t(), FC.setLang(), FC.getLang()
+      3. app.js     — P2P logic; reads FC.* at runtime
+    All scripts use defer so they execute after HTML is parsed, in order.
+  -->
+  <script src="assets/js/config.js" defer></script>
+  <script src="assets/js/i18n.js" defer></script>
+  <script src="assets/js/app.js" defer></script>
+</head>
+<body>
+
+  <!-- ── Header ────────────────────────────────────────────── -->
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="logo" aria-label="FileCourier home">
+        <span class="logo-icon" aria-hidden="true">&#128228;</span>
+        FileCourier
+      </a>
+
+      <div class="header-right">
+        <nav class="header-nav" aria-label="Site navigation">
+          <a href="/#how" data-i18n="howTitle">How it works</a>
+          <a href="/#faq" data-i18n="faqTitle">FAQ</a>
+        </nav>
+
+        <div class="lang-toggle" role="group" aria-label="Language">
+          <button class="lang-btn active" data-lang="en" aria-pressed="true">EN</button>
+          <button class="lang-btn" data-lang="bn" aria-pressed="false">বাং</button>
+        </div>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── App ───────────────────────────────────────────────── -->
+  <main class="app-wrap" id="main">
+    <div class="app-card card" role="main">
+      <!--
+        app.js inspects ?to= in the URL at DOMContentLoaded:
+          • No ?to=  → sender mode  (show drop zone + generated link)
+          • ?to=<id> → receiver mode (connect to that peer, receive file)
+        All UI is injected into #app-root.
+      -->
+      <div id="app-root" aria-live="polite" aria-atomic="true">
+        <!-- Populated by app.js -->
+      </div>
+    </div>
+  </main>
+
+  <!-- ── Footer ────────────────────────────────────────────── -->
+  <footer class="site-footer" aria-label="Footer">
+    <div class="container">
+      <span data-i18n="footerNote">File travels directly — zero server storage · keep tab open during transfer</span>
+      <span data-i18n="tagline">Direct P2P File Transfer</span>
+    </div>
+  </footer>
+
+</body>
+</html>
