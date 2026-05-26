@@ -130,6 +130,52 @@
       relayHintDescSender:'Connection is slow to establish. If your friend\'s screen also shows this message, ask them to click "Connect via Relay" on their side.',
       relayHintBtn:       'Connect via Relay',
       relayActive:        'Relay mode active',
+
+      /* Connection popup */
+      connPopupTitle:     'Connection Established!',
+      connPopupMsg:       'Secure P2P connection is ready.',
+      btnOk:              'OK',
+
+      /* File offer (receiver) */
+      fileOfferTitle:     'Incoming File Request',
+      fileOfferPrompt:    'Do you want to receive this file?',
+      btnAccept:          'Accept',
+      btnDecline:         'Decline',
+
+      /* Sender awaiting confirmation */
+      titleWaitConfirm:   'Waiting for Confirmation',
+      msgWaitConfirm:     'The receiver is reviewing the file details.',
+
+      /* File declined */
+      titleDeclined:      'File Declined',
+      msgDeclined:        'The receiver declined the file.',
+      msgReceiverDeclined:'You declined this file. Waiting for the next offer.',
+
+      /* Multi-file queue */
+      queueFiles:         'Files',
+      addMore:            '+ Add Files',
+      maxFiles:           '10 files max',
+      dropMoreTitle:      'Drop more files or click to browse',
+      filesInQueue:       'files queued',
+      sendingFile:        'Sending file',
+      btnNextFile:        'Send Next File',
+      btnCancelAll:       'Cancel All',
+      replaceFile:        'Replace',
+      removeFile:         'Remove',
+      friendReadyQueue:   'Friend is connected! Add files below to start sending.',
+
+      /* All done */
+      titleAllDone:       'All Files Transferred',
+      msgAllDone:         'All {v} files were received successfully.\nYou can now close this tab.',
+
+      /* Receiver between files */
+      msgFileSaved:       'saved to your Downloads folder',
+      waitingNextFile:    'Waiting for next file from sender...',
+      waitingForFile:     'Waiting for file...',
+
+      /* Auto-reconnect */
+      sAutoReconnect:     'Connection lost — reconnecting...',
+      autoReconnectTitle: 'Auto-Reconnecting',
     },
 
     /* ── BENGALI / বাংলা ──────────────────────────────────────────────── */
@@ -242,6 +288,52 @@
       relayHintDescSender:'কানেকশন স্থাপন হতে দেরি হচ্ছে। আপনার বন্ধুর স্ক্রিনেও যদি এই বার্তা দেখায়, তাদের তাদের পর্দায় "রিলে দিয়ে কানেক্ট করুন" বোতামে ক্লিক করতে বলুন।',
       relayHintBtn:       'রিলে দিয়ে কানেক্ট করুন',
       relayActive:        'রিলে মোড সক্রিয়',
+
+      /* Connection popup */
+      connPopupTitle:     'কানেকশন সম্পন্ন!',
+      connPopupMsg:       'নিরাপদ P2P কানেকশন প্রস্তুত।',
+      btnOk:              'ঠিক আছে',
+
+      /* File offer (receiver) */
+      fileOfferTitle:     'ফাইল পাঠানোর অনুরোধ',
+      fileOfferPrompt:    'আপনি কি এই ফাইলটি নিতে চান?',
+      btnAccept:          'গ্রহণ করুন',
+      btnDecline:         'প্রত্যাখ্যান করুন',
+
+      /* Sender awaiting confirmation */
+      titleWaitConfirm:   'নিশ্চিতের অপেক্ষায়',
+      msgWaitConfirm:     'রিসিভার ফাইলের বিবরণ দেখছেন।',
+
+      /* File declined */
+      titleDeclined:      'ফাইল প্রত্যাখ্যাত',
+      msgDeclined:        'রিসিভার ফাইলটি নিতে অস্বীকার করেছেন।',
+      msgReceiverDeclined:'আপনি এই ফাইলটি প্রত্যাখ্যান করেছেন। পরবর্তী অফারের অপেক্ষায়।',
+
+      /* Multi-file queue */
+      queueFiles:         'ফাইল',
+      addMore:            '+ আরো যোগ করুন',
+      maxFiles:           'সর্বোচ্চ ১০টি ফাইল',
+      dropMoreTitle:      'আরো ফাইল ড্রপ করুন বা ক্লিক করুন',
+      filesInQueue:       'টি ফাইল প্রস্তুত',
+      sendingFile:        'পাঠানো হচ্ছে ফাইল',
+      btnNextFile:        'পরের ফাইল পাঠান',
+      btnCancelAll:       'সব বাতিল',
+      replaceFile:        'পরিবর্তন করুন',
+      removeFile:         'সরিয়ে দিন',
+      friendReadyQueue:   'বন্ধু কানেক্ট হয়েছে! নিচে ফাইল যোগ করুন।',
+
+      /* All done */
+      titleAllDone:       'সকল ফাইল ট্রান্সফার সম্পন্ন',
+      msgAllDone:         'সকল {v}টি ফাইল সফলভাবে পাঠানো হয়েছে।\nএখন এই ট্যাব বন্ধ করতে পারেন।',
+
+      /* Receiver between files */
+      msgFileSaved:       'ডাউনলোডস ফোল্ডারে সেভ হয়েছে',
+      waitingNextFile:    'সেন্ডারের পরবর্তী ফাইলের জন্য অপেক্ষা...',
+      waitingForFile:     'ফাইলের জন্য অপেক্ষা...',
+
+      /* Auto-reconnect */
+      sAutoReconnect:     'কানেকশন হারিয়েছে — পুনরায় কানেক্ট হচ্ছে...',
+      autoReconnectTitle: 'স্বয়ংক্রিয় পুনরায় কানেকশন',
     },
   };
 

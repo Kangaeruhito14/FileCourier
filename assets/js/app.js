@@ -2,11 +2,11 @@
  * FileCourier — Application Controller
  *
  * Handles the full P2P file transfer lifecycle:
- *   - Sender: drop-zone file selection → chunked send with backpressure → done
- *   - Receiver: connect to sender → three-tier writer → save to disk → done
+ *   - Sender: multi-file queue → offer/confirm per file → chunked send → done
+ *   - Receiver: connect → connection popup → accept/decline offer → three-tier writer
  *   - Cancel: bi-directional {type:'cancel'} message over data channel
  *   - ICE monitoring: relay hint after FC.ICE_RELAY_HINT_MS, force-relay retry
- *   - Reconnect: peer.reconnect() on signaling-server 'disconnected' event
+ *   - Auto-reconnect: receiver retries on unexpected connection drop / network change
  *   - Bilingual: every dynamic string goes through FC.t(); FC.onLangChange re-renders
  *
  * Requires (in load order): PeerJS CDN, StreamSaver CDN, config.js, i18n.js
@@ -21,10 +21,16 @@
   var myPeerId     = null;
   var isSender     = false;
 
-  /* Sender */
-  var selectedFile  = null;
-  var sending       = false;
-  var sendCancelled = false;
+  /* Sender — multi-file queue */
+  var selectedFiles   = [];   // array of File objects, max 10
+  var fileQueueIndex  = 0;    // index of file currently being offered/sent
+  var sending         = false;
+  var sendCancelled   = false;
+  var awaitingConfirm = false;
+  var pendingOfferFile = null;
+
+  /* Connection popup state */
+  var bufferedOffer = null;   // file-offer received before receiver dismisses modal
 
   /* Receiver */
   var writerReady    = false;
@@ -42,6 +48,11 @@
   var iceHintTimer   = null;
   var relayShown     = false;
 
+  /* Auto-reconnect (receiver side) */
+  var autoReconnectTimer    = null;
+  var autoReconnectAttempts = 0;
+  var MAX_RECONNECT         = 3;
+
   /* Current view re-renderer (called on language change) */
   var _renderView    = null;
 
@@ -56,6 +67,36 @@
       startSenderMode();
     } else {
       startReceiverMode(targetId);
+    }
+
+    /* Network-change: when device comes back online, kick a reconnect */
+    window.addEventListener('online', function () {
+      if (isSender) {
+        if (peer && !peer.destroyed) {
+          setTimeout(function () { if (peer && !peer.destroyed) { peer.reconnect(); } }, 500);
+        }
+      } else {
+        var tid = new URLSearchParams(location.search).get('to');
+        if (tid && (!conn || !conn.open) && !recvCancelled) {
+          clearAutoReconnect();
+          autoReconnectAttempts = 0;
+          scheduleAutoReconnect(tid);
+        }
+      }
+    });
+
+    /* Network-type change (WiFi ↔ cellular) — also attempt reconnect */
+    if (navigator.connection) {
+      navigator.connection.addEventListener('change', function () {
+        if (!isSender && !recvCancelled) {
+          var tid = new URLSearchParams(location.search).get('to');
+          if (tid && conn && !conn.open) {
+            clearAutoReconnect();
+            autoReconnectAttempts = 0;
+            scheduleAutoReconnect(tid);
+          }
+        }
+      });
     }
   });
 
@@ -103,9 +144,6 @@
 
     peer = new Peer(buildPeerOptions());
 
-    /* If the signaling server doesn't respond within FC.PEER_OPEN_TIMEOUT_MS,
-       show a clear error instead of looping forever on "Connecting…".
-       Most common cause: self-hosted server cold-starting (Render free tier). */
     var openTimer = setTimeout(function () {
       if (!myPeerId) {
         setRoot(resultPanel(
@@ -201,12 +239,12 @@
         t('step1Label') +
       '</p>' +
 
-      dropZone() +
+      buildQueueHTML() +
       '<div id="relay-hint-wrap"></div>'
     );
 
     wireCopy(url);
-    wireDropZone();
+    wireQueue();
   }
 
   function renderSenderWaiting(peerId) {
@@ -216,22 +254,318 @@
       statusBar('online', t('sConnReady')) +
 
       '<p class="notice mt-8" style="font-weight:700;color:var(--clr-brand);border-color:var(--clr-brand-l)">' +
-        t('friendReady') +
+        t('friendReadyQueue') +
       '</p>' +
 
-      dropZone() +
+      buildQueueHTML() +
       '<div id="relay-hint-wrap"></div>'
     );
 
-    wireDropZone();
+    wireQueue();
   }
+
+  /* ── Queue HTML builder ────────────────────────────────────── */
+
+  function buildQueueHTML() {
+    if (selectedFiles.length === 0) {
+      return dropZone();
+    }
+
+    var canAdd = selectedFiles.length < 10;
+    var html =
+      '<div class="file-queue mt-16">' +
+        '<div class="file-queue-header">' +
+          '<span>' + t('queueFiles') + ' (' + selectedFiles.length + '/10)</span>' +
+          (canAdd
+            ? '<label class="btn btn-sm btn-secondary fq-add-label" for="file-input-add">' + t('addMore') + '</label>'
+            : '<span class="fq-max-note">' + t('maxFiles') + '</span>') +
+        '</div>' +
+        '<div class="file-queue-list">';
+
+    for (var i = 0; i < selectedFiles.length; i++) {
+      var f = selectedFiles[i];
+      html +=
+        '<div class="file-queue-item">' +
+          '<span class="fq-icon">' + fileEmoji(f.name) + '</span>' +
+          '<span class="fq-name">' + esc(f.name) + '</span>' +
+          '<span class="fq-size">' + fmt(f.size) + '</span>' +
+          '<label class="btn-icon" for="file-input-replace-' + i + '" title="' + t('replaceFile') + '">&#8635;</label>' +
+          '<button class="btn-icon btn-remove" data-idx="' + i + '" title="' + t('removeFile') + '">&#10005;</button>' +
+        '</div>' +
+        '<input type="file" id="file-input-replace-' + i + '" data-replace-idx="' + i + '" style="display:none">';
+    }
+
+    html += '</div>';
+
+    if (canAdd) {
+      html +=
+        '<div id="drop-area-add" class="drop-zone-add mt-8">' +
+          '<input type="file" id="file-input-add" multiple style="display:none">' +
+          t('dropMoreTitle') +
+        '</div>';
+    }
+
+    html += '</div>';
+    return html;
+  }
+
+  /* ── Queue event wiring ────────────────────────────────────── */
+
+  function wireQueue() {
+    if (selectedFiles.length === 0) {
+      wireEmptyDropZone();
+      return;
+    }
+
+    /* Remove buttons */
+    document.querySelectorAll('.btn-remove').forEach(function (btn) {
+      btn.addEventListener('click', function () {
+        var idx = parseInt(btn.dataset.idx, 10);
+        selectedFiles.splice(idx, 1);
+        /* Keep fileQueueIndex in bounds */
+        if (fileQueueIndex > selectedFiles.length) { fileQueueIndex = selectedFiles.length; }
+        if (_renderView) { _renderView(); }
+      });
+    });
+
+    /* Replace inputs */
+    for (var i = 0; i < selectedFiles.length; i++) {
+      (function (idx) {
+        var inp = ge('file-input-replace-' + idx);
+        if (!inp) { return; }
+        inp.addEventListener('change', function () {
+          if (inp.files[0]) {
+            selectedFiles[idx] = inp.files[0];
+            if (_renderView) { _renderView(); }
+          }
+        });
+      })(i);
+    }
+
+    /* Add-more area + hidden input */
+    var addArea = ge('drop-area-add');
+    var addInp  = ge('file-input-add');
+
+    if (addArea) {
+      addArea.addEventListener('dragover', function (e) {
+        e.preventDefault();
+        addArea.classList.add('drag-over');
+      });
+      addArea.addEventListener('dragleave', function () {
+        addArea.classList.remove('drag-over');
+      });
+      addArea.addEventListener('drop', function (e) {
+        e.preventDefault();
+        addArea.classList.remove('drag-over');
+        if (e.dataTransfer && e.dataTransfer.files.length > 0) {
+          addFilesToQueue(e.dataTransfer.files);
+        }
+      });
+      addArea.addEventListener('click', function () {
+        if (addInp) { addInp.click(); }
+      });
+    }
+
+    if (addInp) {
+      addInp.addEventListener('change', function () {
+        if (addInp.files.length > 0) { addFilesToQueue(addInp.files); }
+      });
+    }
+  }
+
+  function wireEmptyDropZone() {
+    var zone  = ge('drop-area');
+    var input = ge('file-input');
+    if (!zone || !input) { return; }
+
+    zone.addEventListener('dragover', function (e) {
+      e.preventDefault();
+      zone.classList.add('drag-over');
+    });
+    zone.addEventListener('dragleave', function () {
+      zone.classList.remove('drag-over');
+    });
+    zone.addEventListener('drop', function (e) {
+      e.preventDefault();
+      zone.classList.remove('drag-over');
+      if (e.dataTransfer && e.dataTransfer.files.length > 0) {
+        addFilesToQueue(e.dataTransfer.files);
+      }
+    });
+    input.addEventListener('change', function () {
+      if (input.files.length > 0) { addFilesToQueue(input.files); }
+    });
+  }
+
+  function addFilesToQueue(fileList) {
+    var prevCount = selectedFiles.length;
+    var remaining = 10 - prevCount;
+    for (var i = 0; i < fileList.length && i < remaining; i++) {
+      selectedFiles.push(fileList[i]);
+    }
+    if (_renderView) { _renderView(); }
+
+    /* If connected and idle (no active send / confirm), offer the first new file */
+    if (conn && conn.open && !sending && !awaitingConfirm && fileQueueIndex === prevCount) {
+      offerFile(selectedFiles[fileQueueIndex]);
+    }
+  }
+
+  /* ── Sender connection hooks ───────────────────────────────── */
+
+  function hookSenderConn(c) {
+    c.on('open', function () {
+      clearIceTimer();
+      watchIce(c);
+      showConnModal(function () {
+        /* After sender clicks OK — either offer first file or show queue */
+        if (fileQueueIndex < selectedFiles.length) {
+          offerFile(selectedFiles[fileQueueIndex]);
+        } else {
+          renderSenderWaiting(myPeerId);
+        }
+      });
+    });
+
+    c.on('data', function (msg) {
+      if (!msg) { return; }
+      if (msg.type === 'cancel') {
+        sendCancelled = true;
+        clearIceTimer();
+        showSenderCancelled(true);
+        closeConn();
+        return;
+      }
+      if (msg.type === 'file-accept') {
+        awaitingConfirm = false;
+        if (pendingOfferFile) {
+          beginSend(pendingOfferFile);
+          pendingOfferFile = null;
+        }
+        return;
+      }
+      if (msg.type === 'file-reject') {
+        awaitingConfirm = false;
+        pendingOfferFile = null;
+        showFileDeclined();
+        return;
+      }
+    });
+
+    c.on('close', function () {
+      clearIceTimer();
+      if (sending && !sendCancelled) {
+        sendCancelled = true;
+        showSendError(FC.t('sRecvDc'));
+      } else if (!sending) {
+        /* ICE failed / receiver closed before transfer — reset so sender
+           can accept the next connection attempt without a page refresh. */
+        conn = null;
+        if (myPeerId) { renderSenderStep1(myPeerId); }
+      }
+    });
+
+    c.on('error', function (err) {
+      clearIceTimer();
+      if (sending && !sendCancelled) {
+        showSendError(err.message || FC.t('sSendErr'));
+      } else if (!sending) {
+        conn = null;
+      }
+    });
+  }
+
+  /* ── File offering ─────────────────────────────────────────── */
+
+  function offerFile(file) {
+    if (!conn || !conn.open) { return; }
+    awaitingConfirm  = true;
+    pendingOfferFile = file;
+    conn.send({ type: 'file-offer', name: file.name, size: file.size, fileType: file.type || '' });
+    renderSenderAwaitingConfirm(file);
+  }
+
+  function renderSenderAwaitingConfirm(file) {
+    _renderView = function () { renderSenderAwaitingConfirm(file); };
+
+    var queueNote = selectedFiles.length > 1
+      ? '<p class="fq-progress-note">' +
+          t('queueFiles') + ': ' + (fileQueueIndex + 1) + ' / ' + selectedFiles.length +
+        '</p>'
+      : '';
+
+    setRoot(
+      statusBar('info', t('sConnReady')) +
+
+      queueNote +
+
+      '<div class="file-card">' +
+        '<div class="file-icon">' + fileEmoji(file.name) + '</div>' +
+        '<div class="file-info">' +
+          '<div class="file-name">' + esc(file.name) + '</div>' +
+          '<div class="file-size">' + fmt(file.size) +
+            (file.type ? ' &middot; ' + esc(file.type) : '') +
+          '</div>' +
+        '</div>' +
+        '<span class="file-badge uploading">' + t('labelUploading') + '</span>' +
+      '</div>' +
+
+      '<div class="waiting-confirm mt-16">' +
+        '<div class="waiting-icon">&#9203;</div>' +
+        '<div class="waiting-title">' + t('titleWaitConfirm') + '</div>' +
+        '<p class="waiting-msg">' + t('msgWaitConfirm') + '</p>' +
+      '</div>' +
+
+      '<div id="relay-hint-wrap"></div>'
+    );
+  }
+
+  function showFileDeclined() {
+    _renderView = showFileDeclined;
+    var hasMore = (fileQueueIndex + 1) < selectedFiles.length;
+
+    var actions = hasMore
+      ? '<button class="btn btn-primary" id="btn-next-file">' + t('btnNextFile') + '</button>' +
+        ' <button class="btn btn-secondary" id="btn-cancel-all" style="margin-top:8px">' + t('btnCancelAll') + '</button>'
+      : '<button class="btn btn-secondary" id="btn-again">' + t('btnSendAgain') + '</button>';
+
+    setRoot(resultPanel('&#10060;', t('titleDeclined'), t('msgDeclined'), actions));
+
+    if (hasMore) {
+      on('btn-next-file', 'click', function () {
+        fileQueueIndex++;
+        offerFile(selectedFiles[fileQueueIndex]);
+      });
+      on('btn-cancel-all', 'click', function () {
+        resetSender();
+        conn = null;
+        startSenderMode();
+      });
+    } else {
+      on('btn-again', 'click', function () {
+        resetSender();
+        conn = null;
+        startSenderMode();
+      });
+    }
+  }
+
+  /* ── Send progress ─────────────────────────────────────────── */
 
   function renderSendProgress(file, sent) {
     _renderView = function () { renderSendProgress(file, sent); };
     var pct = pctOf(sent, file.size);
 
+    var queueNote = selectedFiles.length > 1
+      ? '<p class="fq-progress-note">' +
+          t('sendingFile') + ' ' + (fileQueueIndex + 1) + ' / ' + selectedFiles.length +
+        '</p>'
+      : '';
+
     setRoot(
       statusBar('info', t('labelSending')) +
+
+      queueNote +
 
       '<div class="file-card">' +
         '<div class="file-icon">' + fileEmoji(file.name) + '</div>' +
@@ -263,9 +597,28 @@
     if (plab) { plab.textContent = p + '%'; }
   }
 
-  function showSendDone() {
-    _renderView = showSendDone;
-    setRoot(resultPanel('&#9989;', t('titleDone'), t('msgDone'),
+  function advanceQueue() {
+    fileQueueIndex++;
+
+    if (fileQueueIndex < selectedFiles.length) {
+      /* More files in queue — offer the next one */
+      offerFile(selectedFiles[fileQueueIndex]);
+      return;
+    }
+
+    /* All files sent — signal receiver and show done */
+    var count = selectedFiles.length;
+    if (conn && conn.open) {
+      try { conn.send({ type: 'all-done', count: count }); } catch (e) {}
+      setTimeout(closeConn, FC.CANCEL_FLUSH_MS);
+    }
+
+    _renderView = advanceQueue;  /* prevent re-entry on lang change */
+    var title = count > 1 ? t('titleAllDone') : t('titleDone');
+    var msg   = count > 1 ? t('msgAllDone', count) : t('msgDone');
+
+    setRoot(resultPanel(
+      '&#9989;', title, msg,
       '<button class="btn btn-secondary" id="btn-again">' + t('btnSendAgain') + '</button>'
     ));
     on('btn-again', 'click', function () {
@@ -293,91 +646,6 @@
       conn = null;
       startSenderMode();
     });
-  }
-
-  /* ── Sender connection hooks ───────────────────────────────── */
-
-  function hookSenderConn(c) {
-    c.on('open', function () {
-      clearIceTimer();   // ICE succeeded — cancel the relay hint countdown
-      watchIce(c);
-      if (selectedFile) {
-        beginSend(selectedFile);
-      } else {
-        renderSenderWaiting(myPeerId);
-      }
-    });
-
-    c.on('data', function (msg) {
-      if (msg && msg.type === 'cancel') {
-        sendCancelled = true;
-        clearIceTimer();
-        showSenderCancelled(true);
-        closeConn();
-      }
-    });
-
-    c.on('close', function () {
-      clearIceTimer();
-      if (sending && !sendCancelled) {
-        sendCancelled = true;
-        showSendError(FC.t('sRecvDc'));
-      } else if (!sending) {
-        /* ICE failed / receiver closed before transfer — reset so sender
-           can accept the next connection attempt without a page refresh. */
-        conn = null;
-        if (myPeerId) { renderSenderStep1(myPeerId); }
-      }
-    });
-
-    c.on('error', function (err) {
-      clearIceTimer();
-      if (sending && !sendCancelled) {
-        showSendError(err.message || FC.t('sSendErr'));
-      } else if (!sending) {
-        conn = null;
-      }
-    });
-  }
-
-  /* ── Drop zone wiring ──────────────────────────────────────── */
-
-  function wireDropZone() {
-    var zone  = ge('drop-area');
-    var input = ge('file-input');
-    if (!zone || !input) { return; }
-
-    zone.addEventListener('dragover', function (e) {
-      e.preventDefault();
-      zone.classList.add('drag-over');
-    });
-    zone.addEventListener('dragleave', function () {
-      zone.classList.remove('drag-over');
-    });
-    zone.addEventListener('drop', function (e) {
-      e.preventDefault();
-      zone.classList.remove('drag-over');
-      var f = e.dataTransfer && e.dataTransfer.files[0];
-      if (f) { onFile(f); }
-    });
-    input.addEventListener('change', function () {
-      if (input.files[0]) { onFile(input.files[0]); }
-    });
-  }
-
-  function onFile(file) {
-    selectedFile = file;
-    if (!conn || !conn.open) {
-      var zone = ge('drop-area');
-      if (zone) {
-        zone.innerHTML =
-          '<div class="drop-icon">' + fileEmoji(file.name) + '</div>' +
-          '<div class="drop-title">' + esc(file.name) + '</div>' +
-          '<div class="drop-sub">' + fmt(file.size) + ' — ' + t('readySend') + '</div>';
-      }
-      return;
-    }
-    beginSend(file);
   }
 
   /* ── Chunked send with backpressure ────────────────────────── */
@@ -439,7 +707,7 @@
     } else {
       conn.send({ type: 'done' });
       sending = false;
-      showSendDone();
+      advanceQueue();
     }
   }
 
@@ -457,6 +725,34 @@
   }
 
   /* ══════════════════════════════════════════════════════════════
+     CONNECTION MODAL (both sides)
+  ══════════════════════════════════════════════════════════════ */
+
+  function showConnModal(callback) {
+    /* Remove any stale modal */
+    var existing = document.getElementById('conn-modal-overlay');
+    if (existing && existing.parentNode) { existing.parentNode.removeChild(existing); }
+
+    var overlay = document.createElement('div');
+    overlay.id        = 'conn-modal-overlay';
+    overlay.className = 'conn-modal-overlay';
+    overlay.innerHTML =
+      '<div class="conn-modal" role="dialog" aria-modal="true">' +
+        '<div class="conn-modal-icon">&#128279;</div>' +
+        '<div class="conn-modal-title">' + t('connPopupTitle') + '</div>' +
+        '<div class="conn-modal-msg">' + t('connPopupMsg') + '</div>' +
+        '<button class="btn btn-primary" id="btn-conn-ok">' + t('btnOk') + '</button>' +
+      '</div>';
+
+    document.body.appendChild(overlay);
+
+    document.getElementById('btn-conn-ok').addEventListener('click', function () {
+      if (overlay.parentNode) { overlay.parentNode.removeChild(overlay); }
+      if (typeof callback === 'function') { callback(); }
+    });
+  }
+
+  /* ══════════════════════════════════════════════════════════════
      RECEIVER MODE
   ══════════════════════════════════════════════════════════════ */
 
@@ -467,7 +763,7 @@
       var c = peer.connect(senderId, { reliable: true, serialization: 'binary' });
       conn = c;
       startIceTimer();  // start countdown before open fires
-      hookReceiverConn(c);
+      hookReceiverConn(c, senderId);
     });
   }
 
@@ -483,6 +779,18 @@
         '<p class="notice mt-8" style="text-align:center">' + t('keepOpen') + '</p>' +
       '</div>' +
       '<div id="relay-hint-wrap"></div>'
+    );
+  }
+
+  function renderRecvWaiting() {
+    _renderView = renderRecvWaiting;
+    setRoot(
+      statusBar('online', t('sConnReady')) +
+      '<div class="result-panel" style="padding:24px 0">' +
+        '<div class="result-icon" style="font-size:2rem">&#128226;</div>' +
+        '<div class="result-title">' + t('waitingForFile') + '</div>' +
+        '<p class="notice mt-8" style="text-align:center">' + t('keepOpen') + '</p>' +
+      '</div>'
     );
   }
 
@@ -525,11 +833,18 @@
     if (plab) { plab.textContent = p + '%'; }
   }
 
-  function showRecvDone(name) {
-    _renderView = function () { showRecvDone(name); };
-    setRoot(resultPanel('&#9989;', t('titleDlDone'),
-      esc(name) + '\n' + t('msgDlDone'), ''
-    ));
+  function showRecvFileSaved(name) {
+    /* Shown between files — connection stays open, waiting for next offer */
+    _renderView = function () { showRecvFileSaved(name); };
+    setRoot(
+      statusBar('online', t('sConnReady')) +
+      '<div class="file-saved-notice mt-16">' +
+        '<div class="file-saved-icon">&#10003;</div>' +
+        '<div class="file-saved-name">' + esc(name) + '</div>' +
+        '<div class="file-saved-msg">' + t('msgFileSaved') + '</div>' +
+      '</div>' +
+      '<p class="notice mt-12" style="text-align:center">' + t('waitingNextFile') + '</p>'
+    );
   }
 
   function showNoConn() {
@@ -552,12 +867,82 @@
     setRoot(resultPanel('&#9200;', t('titleCxl'), t('msgCxlSender'), ''));
   }
 
+  function showFileOfferUI(meta) {
+    _renderView = function () { showFileOfferUI(meta); };
+    setRoot(
+      statusBar('online', t('sConnReady')) +
+
+      '<div class="file-offer-panel mt-16">' +
+        '<div class="file-offer-title">' + t('fileOfferTitle') + '</div>' +
+
+        '<div class="file-card" style="margin-top:0">' +
+          '<div class="file-icon">' + fileEmoji(meta.name) + '</div>' +
+          '<div class="file-info">' +
+            '<div class="file-name">' + esc(meta.name) + '</div>' +
+            '<div class="file-size">' + fmt(meta.size) +
+              (meta.fileType ? ' &middot; ' + esc(meta.fileType) : '') +
+            '</div>' +
+          '</div>' +
+        '</div>' +
+
+        '<p class="file-offer-prompt">' + t('fileOfferPrompt') + '</p>' +
+
+        '<div class="file-offer-actions">' +
+          '<button class="btn btn-primary" id="btn-accept">' + t('btnAccept') + '</button>' +
+          '<button class="btn btn-danger btn-sm" id="btn-decline">' + t('btnDecline') + '</button>' +
+        '</div>' +
+      '</div>'
+    );
+
+    on('btn-accept', 'click', function () {
+      if (conn && conn.open) {
+        conn.send({ type: 'file-accept' });
+        renderRecvConnecting();
+        /* Writer opens when 'meta' message arrives from sender */
+      }
+    });
+
+    on('btn-decline', 'click', function () {
+      if (conn && conn.open) { conn.send({ type: 'file-reject' }); }
+      _renderView = function () {
+        setRoot(
+          statusBar('warning', t('sConnReady')) +
+          '<div class="result-panel" style="padding:16px 0">' +
+            '<div class="result-icon" style="font-size:1.5rem">&#128683;</div>' +
+            '<div class="result-title">' + t('titleDeclined') + '</div>' +
+            '<p class="notice mt-8" style="text-align:center">' + t('msgReceiverDeclined') + '</p>' +
+          '</div>'
+        );
+      };
+      _renderView();
+    });
+  }
+
+  function showRecvAllDone(count) {
+    _renderView = function () { showRecvAllDone(count); };
+    var title = count > 1 ? t('titleAllDone') : t('titleDlDone');
+    var msg   = count > 1 ? t('msgAllDone', count) : (expectedName + '\n' + t('msgDlDone'));
+    setRoot(resultPanel('&#9989;', title, msg, ''));
+  }
+
   /* ── Receiver connection hooks ─────────────────────────────── */
 
-  function hookReceiverConn(c) {
+  function hookReceiverConn(c, senderId) {
     c.on('open', function () {
-      clearIceTimer();   // ICE succeeded — cancel the relay hint countdown
+      clearIceTimer();
+      clearAutoReconnect();
+      autoReconnectAttempts = 0;
       watchIce(c);
+      showConnModal(function () {
+        /* After receiver clicks OK — show buffered offer or waiting state */
+        if (bufferedOffer) {
+          var offer = bufferedOffer;
+          bufferedOffer = null;
+          showFileOfferUI(offer);
+        } else {
+          renderRecvWaiting();
+        }
+      });
     });
 
     c.on('data', function (data) {
@@ -566,8 +951,21 @@
 
     c.on('close', function () {
       clearIceTimer();
-      if (!recvCancelled && receivedBytes > 0 && receivedBytes < expectedBytes) {
+      /* Remove any open modal on unexpected close */
+      var modal = document.getElementById('conn-modal-overlay');
+      if (modal && modal.parentNode) { modal.parentNode.removeChild(modal); }
+
+      if (recvCancelled) { return; }
+      /* Clean close after all-done was received */
+      if (receivedBytes === expectedBytes && expectedBytes > 0 && !doneQueued) { return; }
+      /* Interrupted mid-transfer */
+      if (receivedBytes > 0 && receivedBytes < expectedBytes) {
         setStatus(FC.t('sInterrupted'), 'error');
+        return;
+      }
+      /* Connection dropped while idle (no transfer started) — try auto-reconnect */
+      if (senderId && receivedBytes === 0) {
+        scheduleAutoReconnect(senderId);
       }
     });
 
@@ -577,18 +975,65 @@
     });
   }
 
+  /* ── Auto-reconnect ────────────────────────────────────────── */
+
+  function scheduleAutoReconnect(senderId) {
+    if (autoReconnectAttempts >= MAX_RECONNECT) {
+      showNoConn();
+      return;
+    }
+    autoReconnectAttempts++;
+
+    setStatus(FC.t('sAutoReconnect'), 'warning');
+
+    var wrap = ge('relay-hint-wrap');
+    if (wrap) {
+      wrap.innerHTML =
+        '<div class="relay-hint visible">' +
+          '<div class="relay-hint-title">' + t('autoReconnectTitle') + '</div>' +
+          '<div class="relay-hint-desc">' +
+            t('sAutoReconnect') + ' (' + autoReconnectAttempts + '/' + MAX_RECONNECT + ')' +
+          '</div>' +
+        '</div>';
+    }
+
+    autoReconnectTimer = setTimeout(function () {
+      if (peer) { try { peer.destroy(); } catch (e) {} peer = null; }
+      conn = null;
+      startReceiverMode(senderId);
+    }, 3000);
+  }
+
+  function clearAutoReconnect() {
+    if (autoReconnectTimer) { clearTimeout(autoReconnectTimer); autoReconnectTimer = null; }
+  }
+
+  /* ── Data handling ─────────────────────────────────────────── */
+
   function handleData(data) {
     if (recvCancelled) { return; }
 
     /* Control messages arrive as plain objects */
     if (data && typeof data === 'object' && !(data instanceof ArrayBuffer) && !(data instanceof Uint8Array)) {
       switch (data.type) {
+        case 'file-offer':
+          /* Buffer if connection modal is still showing */
+          if (document.getElementById('conn-modal-overlay')) {
+            bufferedOffer = data;
+          } else {
+            showFileOfferUI(data);
+          }
+          return;
         case 'meta':
           onMeta(data);
           return;
         case 'done':
           if (!writerReady) { doneQueued = true; return; }
           finishRecv();
+          return;
+        case 'all-done':
+          showRecvAllDone(data.count || 1);
+          closeConn();
           return;
         case 'cancel':
           recvCancelled = true;
@@ -702,9 +1147,9 @@
       /* StreamSaver and FSAA both expose close() */
       var p = writer.close();
       if (p && typeof p.then === 'function') {
-        p.then(function () { showRecvDone(expectedName); });
+        p.then(function () { showRecvFileSaved(expectedName); });
       } else {
-        showRecvDone(expectedName);
+        showRecvFileSaved(expectedName);
       }
       writer = null;
     } else {
@@ -721,9 +1166,9 @@
         URL.revokeObjectURL(url);
         if (a.parentNode) { a.parentNode.removeChild(a); }
       }, 12000);
-      showRecvDone(expectedName);
+      showRecvFileSaved(expectedName);
     }
-    closeConn();
+    /* Do NOT close connection — wait for next file-offer or all-done */
   }
 
   function cancelRecv() {
@@ -857,10 +1302,13 @@
   }
 
   function resetSender() {
-    selectedFile  = null;
-    sending       = false;
-    sendCancelled = false;
-    relayShown    = false;
+    selectedFiles    = [];
+    fileQueueIndex   = 0;
+    sending          = false;
+    sendCancelled    = false;
+    awaitingConfirm  = false;
+    pendingOfferFile = null;
+    relayShown       = false;
     clearIceTimer();
   }
 
@@ -884,7 +1332,7 @@
   function dropZone() {
     return (
       '<div id="drop-area" class="drop-zone mt-16">' +
-        '<input type="file" id="file-input">' +
+        '<input type="file" id="file-input" multiple>' +
         '<div class="drop-icon">&#128228;</div>' +
         '<div class="drop-title">' + t('dropTitle') + '</div>' +
         '<div class="drop-sub">' + t('dropOr') + ' <span class="browse">' + t('dropBrowse') + '</span></div>' +
@@ -957,7 +1405,7 @@
     if (!bytes) { return '0 B'; }
     var u = ['B', 'KB', 'MB', 'GB', 'TB'];
     var i = Math.min(Math.floor(Math.log(bytes) / Math.log(1024)), u.length - 1);
-    return (bytes / Math.pow(1024, i)).toFixed(i === 0 ? 0 : 1) + ' ' + u[i];
+    return (bytes / Math.pow(1024, i)).toFixed(i === 0 ? 0 : 1) + ' ' + u[i];
   }
 
   function fileEmoji(name) {
