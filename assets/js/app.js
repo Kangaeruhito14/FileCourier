@@ -143,9 +143,10 @@
     });
 
     peer.on('disconnected', function () {
+      var thisPeer = peer;   /* capture ref — peer may be replaced by relay retry */
       setStatus(FC.t('sReconnecting'), 'warning');
       setTimeout(function () {
-        if (peer && !peer.destroyed) { peer.reconnect(); }
+        if (thisPeer && !thisPeer.destroyed) { thisPeer.reconnect(); }
       }, FC.PEER_RECONNECT_MS);
     });
 
@@ -1098,8 +1099,16 @@
         })
         .catch(function (err) {
           if (err.name === 'AbortError') {
+            /* User dismissed the save dialog — notify sender so it doesn't
+               wait forever for the file-received ACK that will never arrive. */
             recvCancelled = true;
-            setStatus(FC.t('sSaveCxl'), 'error');
+            if (conn && conn.open) {
+              try { conn.send({ type: 'cancel', by: 'receiver' }); } catch (e) {}
+              setTimeout(closeConn, FC.CANCEL_FLUSH_MS);
+            } else {
+              closeConn();
+            }
+            showRecvCancelled();
             return;
           }
           useFallback(size);
