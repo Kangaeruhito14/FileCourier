@@ -66,7 +66,15 @@
 
   <!-- ── App ───────────────────────────────────────────────── -->
   <main class="app-wrap" id="main">
-    <div class="app-card card" role="main">
+
+    <!-- Branded strip sitting over the dark gradient band -->
+    <div class="app-intro" aria-hidden="true">
+      <div class="app-intro-badge">&#128274; Secure P2P Transfer</div>
+      <p class="app-intro-sub">End-to-end encrypted &middot; Zero server storage &middot; No account needed</p>
+    </div>
+
+    <!-- Main app card — all dynamic UI injected here by app.js -->
+    <div class="app-card card">
       <!--
         app.js inspects ?to= in the URL at DOMContentLoaded:
           • No ?to=  → sender mode  (show drop zone + generated link)
@@ -77,13 +85,31 @@
         <!-- Populated by app.js -->
       </div>
     </div>
+
+    <!-- Trust row below card -->
+    <div class="app-trust-row" aria-hidden="true">
+      <span>&#128274; E2E encrypted</span>
+      <span>&middot;</span>
+      <span>File never touches any server</span>
+      <span>&middot;</span>
+      <span>Keep tab open during transfer</span>
+    </div>
+
   </main>
 
   <!-- ── Footer ────────────────────────────────────────────── -->
-  <footer class="site-footer" aria-label="Footer">
+  <footer class="app-footer" aria-label="Footer">
     <div class="container">
-      <span data-i18n="footerNote">File travels directly — zero server storage · keep tab open during transfer</span>
-      <span data-i18n="tagline">Direct P2P File Transfer</span>
+      <a href="/" class="app-footer-brand">
+        <img src="assets/img/logo.svg" alt="" aria-hidden="true">
+        FileCourier
+      </a>
+      <div class="app-footer-links">
+        <a href="/how-it-works.html">How it works</a>
+        <a href="/faq.html">FAQ</a>
+        <a href="/privacy.html">Privacy</a>
+      </div>
+      <span class="app-footer-note" data-i18n="footerNote">No server storage &middot; Keep tab open</span>
     </div>
   </footer>
 
