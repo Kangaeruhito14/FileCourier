@@ -27,66 +27,42 @@
   FC.PEER_SECURE = true;
   FC.PEER_DEBUG  = 0;      // 0 = silent, 1 = errors, 2 = warnings, 3 = verbose
 
-  /* ── ICE SERVERS (STUN + TURN) ──────────────────────────────────────────
-   * Ordered from cheapest (no relay) → most reliable (TLS relay).
+  /* ── ICE SERVERS ───────────────────────────────────────────────────────
    *
-   * Why so many TURN variants?
-   *   - UDP/80  : fastest relay; blocked on some networks
-   *   - TCP/80  : bypasses UDP-blocking ISPs
-   *   - TCP/443 : looks like HTTPS; passes most firewalls
-   *   - TLS/443 : TURN over TLS — indistinguishable from HTTPS traffic.
-   *               This is the most reliable option for:
-   *                 ✓ Mobile CGNAT (carrier-grade NAT)
-   *                 ✓ Laptop behind mobile hotspot (double-NAT)
-   *                 ✓ Corporate/university firewalls
+   * Two separate arrays — used by buildPeerOptions() in app.js:
    *
-   * Providers:
-   *   - OpenRelay (openrelay.metered.ca)  — free, globally distributed
-   *   - FrsTURN  (freeturn.net)           — free secondary relay; fallback if
-   *                                         openrelay is blocked by the carrier
+   *   FC.ICE       — STUN only.  Used for every direct connection attempt.
+   *                  STUN gathering completes in < 500 ms, so the connection
+   *                  opens quickly on same-WiFi and most broadband pairs.
+   *                  Including TURN here would force the browser to wait for
+   *                  each TURN server to respond (or time out) before the
+   *                  offer/answer is exchanged — easily 10–15 s extra latency.
    *
-   * For better reliability on Bangladesh mobile (Teletalk/Grameenphone) or other
-   * carriers that block these free servers, sign up at https://metered.ca/turn
-   * (free tier: 50 GB/month) and replace the ICE entries below with the
-   * credentials from your Metered dashboard.
+   *   FC.ICE_RELAY — TURN only.  Appended when relay mode is active
+   *                  (user clicked "Connect via Relay", useRelay = true).
+   *                  iceTransportPolicy is also set to 'relay' so only TURN
+   *                  candidates are used; STUN candidates are irrelevant then.
+   *
+   * To use a paid/private TURN service (e.g. Metered.ca free tier — 50 GB/month)
+   * replace FC.ICE_RELAY with the credentials from your dashboard.
    * ──────────────────────────────────────────────────────────────────────── */
+
+  /* STUN — discover public IP; zero relay bandwidth; very fast */
   FC.ICE = [
-    // STUN — discover public IP; free, no relay bandwidth used
     { urls: ['stun:stun.l.google.com:19302', 'stun:stun1.l.google.com:19302'] },
     { urls: ['stun:stun2.l.google.com:19302', 'stun:stun3.l.google.com:19302'] },
+  ];
 
-    // TURN UDP — relay; fast but may be blocked by strict NATs
-    {
-      urls:       'turn:openrelay.metered.ca:80',
-      username:   'openrelayproject',
-      credential: 'openrelayproject',
-    },
-    {
-      urls:       'turn:openrelay.metered.ca:443',
-      username:   'openrelayproject',
-      credential: 'openrelayproject',
-    },
-
-    // TURN TCP — relay over TCP; works where UDP is blocked
-    {
-      urls:       'turn:openrelay.metered.ca:80?transport=tcp',
-      username:   'openrelayproject',
-      credential: 'openrelayproject',
-    },
-    {
-      urls:       'turn:openrelay.metered.ca:443?transport=tcp',
-      username:   'openrelayproject',
-      credential: 'openrelayproject',
-    },
-
-    // TURNS (TURN over TLS) — indistinguishable from HTTPS.
-    // Most reliable for mobile hotspot / double-NAT / strict firewall scenarios.
-    {
-      urls:       'turns:openrelay.metered.ca:443',
-      username:   'openrelayproject',
-      credential: 'openrelayproject',
-    },
-
+  /* TURN — relay servers; loaded only when relay mode is active */
+  FC.ICE_RELAY = [
+    // UDP — fastest relay path
+    { urls: 'turn:openrelay.metered.ca:80',  username: 'openrelayproject', credential: 'openrelayproject' },
+    { urls: 'turn:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
+    // TCP — works where UDP is blocked
+    { urls: 'turn:openrelay.metered.ca:80?transport=tcp',  username: 'openrelayproject', credential: 'openrelayproject' },
+    { urls: 'turn:openrelay.metered.ca:443?transport=tcp', username: 'openrelayproject', credential: 'openrelayproject' },
+    // TLS — indistinguishable from HTTPS; passes almost every firewall
+    { urls: 'turns:openrelay.metered.ca:443', username: 'openrelayproject', credential: 'openrelayproject' },
   ];
 
   /* ── TRANSFER SETTINGS ──────────────────────────────────────────────────

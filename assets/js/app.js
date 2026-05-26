@@ -81,8 +81,11 @@
     var opts = {
       debug: FC.PEER_DEBUG,
       config: {
-        iceServers: FC.ICE,
-        iceTransportPolicy: useRelay ? 'relay' : 'all',
+        /* Direct mode: STUN only — gathers in < 500 ms, no TURN wait.
+           Relay mode:  TURN only — iceTransportPolicy:'relay' ignores
+           STUN anyway, so no point including it. */
+        iceServers:         useRelay ? FC.ICE_RELAY : FC.ICE,
+        iceTransportPolicy: useRelay ? 'relay'       : 'all',
       },
     };
     if (FC.PEER_HOST) {
