@@ -26,6 +26,7 @@
   var fileQueueIndex  = 0;    // index of file currently being offered/sent
   var sending         = false;
   var sendCancelled   = false;
+  var sendGeneration  = 0;    // incremented on each beginSend to invalidate stale FileReaders
   var awaitingConfirm = false;
   var pendingOfferFile = null;
 
@@ -450,12 +451,18 @@
         showFileDeclined();
         return;
       }
+      /* Receiver confirms the file was fully written to disk — now safe to advance */
+      if (msg.type === 'file-received') {
+        advanceQueue();
+        return;
+      }
     });
 
     c.on('close', function () {
       clearIceTimer();
       if (sending && !sendCancelled) {
         sendCancelled = true;
+        sending = false;          /* allow re-offer on next connection */
         showSendError(FC.t('sRecvDc'));
       } else if (!sending) {
         /* ICE failed / receiver closed before transfer — reset so sender
@@ -468,6 +475,8 @@
     c.on('error', function (err) {
       clearIceTimer();
       if (sending && !sendCancelled) {
+        sendCancelled = true;
+        sending = false;
         showSendError(err.message || FC.t('sSendErr'));
       } else if (!sending) {
         conn = null;
@@ -652,46 +661,57 @@
 
   function beginSend(file) {
     if (!conn || !conn.open) { showSendError(FC.t('sRecvDc')); return; }
-    sending       = true;
-    sendCancelled = false;
+    sending        = true;
+    sendCancelled  = false;
+    sendGeneration++;          /* invalidate any lingering FileReader callbacks */
     clearIceTimer();
 
     conn.send({ type: 'meta', name: file.name, size: file.size });
     renderSendProgress(file, 0);
-    readChunk(file, 0);
+    readChunk(file, 0, sendGeneration);
   }
 
-  function readChunk(file, offset) {
-    if (sendCancelled) { return; }
+  function readChunk(file, offset, gen) {
+    if (sendCancelled || gen !== sendGeneration) { return; }
 
     var slice  = file.slice(offset, offset + FC.CHUNK_SIZE);
     var reader = new FileReader();
 
     reader.onerror = function () {
+      if (gen !== sendGeneration) { return; }
       showSendError(reader.error ? reader.error.message : FC.t('sSendErr'));
     };
 
     reader.onload = function (e) {
-      if (sendCancelled) { return; }
+      if (sendCancelled || gen !== sendGeneration) { return; }
       var chunk = e.target.result;
       var dc    = conn && conn.dataChannel;
 
       if (dc && dc.bufferedAmount > FC.BUFFER_HIGH) {
-        dc.bufferedAmountLowThreshold = Math.floor(FC.BUFFER_HIGH / 2);
-        dc.addEventListener('bufferedamountlow', function drain() {
+        var threshold = Math.floor(FC.BUFFER_HIGH / 2);
+        dc.bufferedAmountLowThreshold = threshold;
+        var drainFired = false;
+        var drain = function () {
+          if (drainFired) { return; }
+          drainFired = true;
           dc.removeEventListener('bufferedamountlow', drain);
-          dispatchChunk(file, chunk, offset);
-        });
+          if (sendCancelled || gen !== sendGeneration) { return; }
+          dispatchChunk(file, chunk, offset, gen);
+        };
+        dc.addEventListener('bufferedamountlow', drain);
+        /* Safety: if buffer already dropped below threshold before the event
+           could fire (rapid drain between check and addEventListener), proceed. */
+        if (dc.bufferedAmount <= threshold) { drain(); }
         return;
       }
-      dispatchChunk(file, chunk, offset);
+      dispatchChunk(file, chunk, offset, gen);
     };
 
     reader.readAsArrayBuffer(slice);
   }
 
-  function dispatchChunk(file, chunk, offset) {
-    if (sendCancelled) { return; }
+  function dispatchChunk(file, chunk, offset, gen) {
+    if (sendCancelled || gen !== sendGeneration) { return; }
     try {
       conn.send(chunk);
     } catch (e) {
@@ -703,17 +723,22 @@
     updateSendProgress(file, next);
 
     if (next < file.size) {
-      readChunk(file, next);
+      readChunk(file, next, gen);
     } else {
-      conn.send({ type: 'done' });
+      /* All chunks dispatched to the DataChannel buffer.
+         Send 'done' so receiver knows to finalise the file.
+         Do NOT call advanceQueue() here — wait for the receiver's
+         'file-received' ACK which confirms the file was fully written.
+         This prevents closing the connection while data is still in-flight. */
+      try { conn.send({ type: 'done' }); } catch (e) {}
       sending = false;
-      advanceQueue();
     }
   }
 
   function cancelSend() {
     sendCancelled = true;
     sending       = false;
+    sendGeneration++;   /* invalidate any in-flight FileReaders */
     clearIceTimer();
     if (conn && conn.open) {
       try { conn.send({ type: 'cancel', by: 'sender' }); } catch (e) {}
@@ -1147,8 +1172,12 @@
       /* StreamSaver and FSAA both expose close() */
       var p = writer.close();
       if (p && typeof p.then === 'function') {
-        p.then(function () { showRecvFileSaved(expectedName); });
+        p.then(function () {
+          ackFileReceived();
+          showRecvFileSaved(expectedName);
+        });
       } else {
+        ackFileReceived();
         showRecvFileSaved(expectedName);
       }
       writer = null;
@@ -1166,9 +1195,17 @@
         URL.revokeObjectURL(url);
         if (a.parentNode) { a.parentNode.removeChild(a); }
       }, 12000);
+      ackFileReceived();
       showRecvFileSaved(expectedName);
     }
     /* Do NOT close connection — wait for next file-offer or all-done */
+  }
+
+  /* Tell the sender the file was fully written — triggers advanceQueue on sender */
+  function ackFileReceived() {
+    if (conn && conn.open) {
+      try { conn.send({ type: 'file-received' }); } catch (e) {}
+    }
   }
 
   function cancelRecv() {
@@ -1306,6 +1343,7 @@
     fileQueueIndex   = 0;
     sending          = false;
     sendCancelled    = false;
+    sendGeneration++;            /* invalidate any in-flight FileReaders */
     awaitingConfirm  = false;
     pendingOfferFile = null;
     relayShown       = false;

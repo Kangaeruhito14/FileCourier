@@ -73,7 +73,7 @@
    *                 Files larger than this require Chrome/Edge (StreamSaver).
    * ──────────────────────────────────────────────────────────────────────── */
   FC.CHUNK_SIZE   = 65536;          // 64 KB
-  FC.BUFFER_HIGH  = 8 * 1024 * 1024; // 8 MB
+  FC.BUFFER_HIGH  = 2 * 1024 * 1024; // 2 MB — keep DataChannel buffer small to prevent overflow
   FC.FALLBACK_MAX = 512 * 1024 * 1024; // 512 MB
 
   /* ── ICE / CONNECTION TIMEOUTS ──────────────────────────────────────────
