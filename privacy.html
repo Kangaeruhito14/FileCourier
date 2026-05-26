@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Privacy Policy — FileCourier</title>
+  <meta name="description" content="FileCourier privacy policy — what data we collect (none), how transfers work, and why your files never touch our servers.">
+  <link rel="icon" type="image/svg+xml" href="assets/img/logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+  <!-- ── Header ────────────────────────────────────────────── -->
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="logo" aria-label="FileCourier home">
+        <img src="assets/img/logo.svg" alt="" class="logo-img" width="30" height="30" aria-hidden="true">
+        FileCourier
+      </a>
+      <div class="header-right">
+        <nav class="header-nav" aria-label="Site navigation">
+          <a href="/how-it-works.html">How it works</a>
+          <a href="/faq.html">FAQ</a>
+          <a href="/privacy.html" style="color:var(--clr-brand)">Privacy</a>
+          <a href="/app.html" class="btn btn-primary btn-sm">Start a Transfer</a>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Page hero ─────────────────────────────────────────── -->
+  <section class="page-hero">
+    <div class="container">
+      <div class="page-hero-badge">Policy</div>
+      <h1>Privacy Policy</h1>
+      <p class="page-hero-sub">The short version: we collect nothing. Your files never touch our servers. Here's the full picture.</p>
+    </div>
+  </section>
+
+  <!-- ── Content ───────────────────────────────────────────── -->
+  <section class="section">
+    <div class="container" style="max-width:720px">
+
+      <!-- Summary table -->
+      <h2 class="section-title" style="font-size:1.15rem;text-align:left;margin-bottom:16px">At a Glance</h2>
+      <div class="compat-wrap" style="margin-bottom:48px">
+        <table class="privacy-table">
+          <thead>
+            <tr>
+              <th>What</th>
+              <th>Collected?</th>
+              <th>Notes</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>File contents</td>
+              <td class="privacy-check">&#10007; Never</td>
+              <td>Files travel peer-to-peer. Our servers never see file data.</td>
+            </tr>
+            <tr>
+              <td>File names / sizes</td>
+              <td class="privacy-check">&#10007; Never</td>
+              <td>Metadata stays in your browser. Not sent to our servers.</td>
+            </tr>
+            <tr>
+              <td>IP addresses</td>
+              <td class="privacy-check">&#10007; Not logged</td>
+              <td>The PeerJS signaling server processes connections but does not log IPs.</td>
+            </tr>
+            <tr>
+              <td>Peer IDs</td>
+              <td class="privacy-check">&#10007; Ephemeral</td>
+              <td>Random IDs generated per session. Discarded when you close the tab.</td>
+            </tr>
+            <tr>
+              <td>Cookies</td>
+              <td class="privacy-check">&#10007; None</td>
+              <td>No cookies are set — ever.</td>
+            </tr>
+            <tr>
+              <td>Analytics / tracking</td>
+              <td class="privacy-check">&#10007; None</td>
+              <td>Zero analytics scripts, pixels, or fingerprinting tools.</td>
+            </tr>
+            <tr>
+              <td>Account / personal data</td>
+              <td class="privacy-check">&#10007; None</td>
+              <td>No sign-up, no email, no name — nothing personal is collected.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- How the transfer works -->
+      <h2 class="section-title" style="font-size:1.15rem;text-align:left;margin-bottom:12px">How Your File Actually Travels</h2>
+      <p style="color:var(--clr-text-2);line-height:1.75;margin-bottom:12px">
+        FileCourier is a browser-to-browser application built on <strong>WebRTC</strong>. When you send a file, here is the complete data path:
+      </p>
+      <ol style="color:var(--clr-text-2);line-height:2;padding-left:1.4rem;margin-bottom:32px">
+        <li>Your browser generates a random peer ID and registers it with the <strong>PeerJS signaling server</strong> (0.peerjs.com). The server stores this ID in memory for the duration of your session only.</li>
+        <li>The share link you copy contains that peer ID — no other personal data.</li>
+        <li>When the receiver opens the link, their browser contacts the signaling server to locate your peer ID and exchange ICE candidates (network path metadata). The signaling server is used <em>only</em> for this handshake.</li>
+        <li>Once the WebRTC DataChannel is established, your file streams <strong>directly from your browser to theirs</strong>. The signaling server is never contacted again.</li>
+        <li>If a direct connection cannot be established, a TURN relay server is used. All data through the relay is <strong>DTLS-encrypted</strong> — the relay server relays encrypted bytes it cannot read.</li>
+      </ol>
+
+      <!-- Third-party services -->
+      <h2 class="section-title" style="font-size:1.15rem;text-align:left;margin-bottom:12px">Third-Party Services</h2>
+      <p style="color:var(--clr-text-2);line-height:1.75;margin-bottom:12px">FileCourier uses a small number of external services to function:</p>
+
+      <div class="compat-wrap" style="margin-bottom:48px">
+        <table class="privacy-table">
+          <thead>
+            <tr>
+              <th>Service</th>
+              <th>Purpose</th>
+              <th>Data sent</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td><strong>PeerJS Cloud</strong> (0.peerjs.com)</td>
+              <td>WebRTC signaling — peer discovery and ICE exchange</td>
+              <td>Ephemeral peer IDs and ICE candidates only. No file data.</td>
+            </tr>
+            <tr>
+              <td><strong>Google STUN</strong> (stun.l.google.com)</td>
+              <td>Discover your public IP to establish direct connection</td>
+              <td>Connection metadata only. No personal data, no file data.</td>
+            </tr>
+            <tr>
+              <td><strong>freeturn.net TURN</strong></td>
+              <td>Relay fallback if direct P2P fails</td>
+              <td>Encrypted file data (relay can't decrypt it). No metadata stored.</td>
+            </tr>
+            <tr>
+              <td><strong>Google Fonts</strong></td>
+              <td>Load the Inter typeface for the UI</td>
+              <td>Font request — standard browser request. Google's font CDN privacy policy applies.</td>
+            </tr>
+            <tr>
+              <td><strong>unpkg.com / jsDelivr</strong></td>
+              <td>Serve PeerJS and StreamSaver.js libraries</td>
+              <td>Standard CDN request. CDN provider logs may include your IP.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Encryption -->
+      <h2 class="section-title" style="font-size:1.15rem;text-align:left;margin-bottom:12px">Encryption</h2>
+      <p style="color:var(--clr-text-2);line-height:1.75;margin-bottom:32px">
+        WebRTC mandates <strong>DTLS-SRTP encryption</strong> on every DataChannel — there is no unencrypted mode. This means every byte of every file is encrypted in transit, whether it travels direct P2P or through a TURN relay. No one — including us — can read what is being transferred.
+      </p>
+
+      <!-- Open source -->
+      <h2 class="section-title" style="font-size:1.15rem;text-align:left;margin-bottom:12px">Open Source Verification</h2>
+      <p style="color:var(--clr-text-2);line-height:1.75;margin-bottom:32px">
+        FileCourier is fully open source under the MIT license. Every claim on this page can be independently verified by reading the source code on <a href="https://github.com/Kangaeruhito14/FileCourier" target="_blank" rel="noopener" style="color:var(--clr-brand)">GitHub</a>. There are no server-side components beyond the signaling server and TURN relay described above.
+      </p>
+
+      <!-- Contact -->
+      <h2 class="section-title" style="font-size:1.15rem;text-align:left;margin-bottom:12px">Questions?</h2>
+      <p style="color:var(--clr-text-2);line-height:1.75;margin-bottom:48px">
+        If you have questions about how FileCourier handles data, please <a href="https://github.com/Kangaeruhito14/FileCourier/issues" target="_blank" rel="noopener" style="color:var(--clr-brand)">open a GitHub issue</a>. We will respond as quickly as possible.
+      </p>
+
+      <p style="color:var(--clr-text-3);font-size:.82rem">Last updated: May 2025</p>
+
+    </div>
+  </section>
+
+  <!-- ── CTA ───────────────────────────────────────────────── -->
+  <section class="cta-strip-v2">
+    <div class="container">
+      <p class="cta-v2-title">Ready to transfer privately?</p>
+      <p class="cta-v2-sub">No account, no upload, no trace. Just a link and a transfer.</p>
+      <a href="/app.html" class="btn-hero">Start a Transfer &#8594;</a>
+    </div>
+  </section>
+
+  <!-- ── Footer ────────────────────────────────────────────── -->
+  <footer class="footer-v2">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <a href="/" class="footer-logo-link">
+            <img src="assets/img/logo.svg" alt="" class="footer-logo-img" width="28" height="28">
+            FileCourier
+          </a>
+          <p class="footer-tagline">Private P2P file transfer. No cloud. No server storage. Free forever.</p>
+          <a href="/app.html" class="btn btn-primary btn-sm">Start a Transfer &#8594;</a>
+        </div>
+        <div class="footer-col">
+          <div class="footer-col-title">Navigate</div>
+          <a href="/">Home</a>
+          <a href="/how-it-works.html">How it works</a>
+          <a href="/faq.html">FAQ</a>
+          <a href="/privacy.html">Privacy</a>
+        </div>
+        <div class="footer-col">
+          <div class="footer-col-title">Transfer</div>
+          <a href="/app.html">Start a Transfer</a>
+          <a href="/how-it-works.html#relay">Relay Mode</a>
+          <a href="/faq.html#size-limit">File Size Limits</a>
+        </div>
+        <div class="footer-col">
+          <div class="footer-col-title">Resources</div>
+          <a href="/privacy.html">Privacy Policy</a>
+          <a href="/faq.html">Help &amp; FAQ</a>
+          <a href="https://github.com/Kangaeruhito14/FileCourier" target="_blank" rel="noopener">GitHub</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>&#169; 2025 FileCourier. Free &amp; open source under MIT license.</span>
+        <span>No cookies &middot; No analytics &middot; No tracking</span>
+      </div>
+    </div>
+  </footer>
+
+</body>
+</html>

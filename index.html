@@ -4,32 +4,22 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>FileCourier — Private P2P File Transfer</title>
-  <meta name="description"
-    content="Transfer files directly between devices — no cloud, no server storage, no size limits. Free forever.">
+  <meta name="description" content="Transfer files directly between devices — no cloud, no server storage, no size limits. End-to-end encrypted. Free forever.">
 
   <!-- Open Graph -->
   <meta property="og:title"       content="FileCourier — Private P2P File Transfer">
-  <meta property="og:description" content="No cloud. No storage. No size limits. Your file goes straight from your device to your friend's.">
+  <meta property="og:description" content="No cloud. No storage. No size limits. Your file goes straight from your device to your friend's — encrypted.">
   <meta property="og:type"        content="website">
   <meta property="og:url"         content="https://filecourier.netlify.app">
 
-  <!-- Preconnect for fonts (loaded in style.css) -->
+  <link rel="icon" type="image/svg+xml" href="assets/img/logo.svg">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-
   <link rel="stylesheet" href="assets/css/style.css">
 
-  <!--
-    i18n.js provides FC.t() and FC.setLang() for bilingual content.
-    No PeerJS or app.js needed on the landing page.
-  -->
   <script src="assets/js/i18n.js" defer></script>
 
-  <!--
-    Backward-compat redirect:
-    Old links shared as /?to=<id> should go to /app.html?to=<id>.
-    Runs synchronously before any render so the redirect is instant.
-  -->
+  <!-- Backward-compat: old /?to=<id> links forward to /app.html?to=<id> -->
   <script>
     (function () {
       var to = new URLSearchParams(location.search).get('to');
@@ -43,15 +33,16 @@
   <header class="site-header">
     <div class="container">
       <a href="/" class="logo" aria-label="FileCourier home">
-        <span class="logo-icon" aria-hidden="true">&#128228;</span>
+        <img src="assets/img/logo.svg" alt="" class="logo-img" width="30" height="30" aria-hidden="true">
         FileCourier
       </a>
 
       <div class="header-right">
         <nav class="header-nav" aria-label="Site navigation">
-          <a href="#how"      data-i18n="howTitle">How it works</a>
-          <a href="#faq"      data-i18n="faqTitle">FAQ</a>
-          <a href="/app.html" data-i18n="heroCta" class="btn btn-primary btn-sm">Start a Transfer</a>
+          <a href="/how-it-works.html">How it works</a>
+          <a href="/faq.html">FAQ</a>
+          <a href="/privacy.html">Privacy</a>
+          <a href="/app.html" class="btn btn-primary btn-sm">Start a Transfer</a>
         </nav>
 
         <div class="lang-toggle" role="group" aria-label="Language">
@@ -63,176 +54,297 @@
   </header>
 
   <!-- ── Hero ──────────────────────────────────────────────── -->
-  <section class="hero" aria-labelledby="hero-heading">
+  <section class="hero-v2" aria-labelledby="hero-heading">
     <div class="container">
-      <h1 id="hero-heading" class="hero-heading" data-i18n="heroHeading">
-        Transfer files directly,
-privately, for free.
-      </h1>
-      <p class="hero-sub" data-i18n="heroSub">
-        No cloud. No storage. No size limits.
-Your file goes straight from your device to your friend's.
+      <div class="hero-v2-inner">
+        <div class="hero-tag">&#9889; No cloud &middot; No account &middot; Free forever</div>
+
+        <h1 id="hero-heading" class="hero-heading-v2">Send files <span class="grad">privately</span>,<br>directly, for free.</h1>
+
+        <p class="hero-sub-v2">
+          FileCourier transfers files peer-to-peer, encrypted end-to-end over a direct WebRTC channel.
+          Your file never touches any server. Up to 10 files at once, any size.
+        </p>
+
+        <div class="hero-btns">
+          <a href="/app.html" class="btn-hero">Start a Transfer &#8594;</a>
+          <a href="/how-it-works.html" class="btn-ghost">How it works</a>
+        </div>
+
+        <div class="hero-trust-strip">
+          <span>End-to-end encrypted</span>
+          <span>No file size limit</span>
+          <span>Zero server storage</span>
+          <span>No signup required</span>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Stats bar ─────────────────────────────────────────── -->
+  <div class="stats-bar">
+    <div class="container">
+      <div class="stats-grid">
+        <div class="stat-item">
+          <div class="stat-value">100%</div>
+          <div class="stat-label">Private</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">&#8734;</div>
+          <div class="stat-label">File Size</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">E2E</div>
+          <div class="stat-label">Encrypted</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">10</div>
+          <div class="stat-label">Files at once</div>
+        </div>
+        <div class="stat-item">
+          <div class="stat-value">Free</div>
+          <div class="stat-label">Forever</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Features ──────────────────────────────────────────── -->
+  <section class="section" aria-labelledby="feat-title">
+    <div class="container">
+      <h2 class="section-title" id="feat-title">Why FileCourier?</h2>
+      <p class="section-sub">Everything you need, nothing you don't. No account, no cloud, no limits — just a link and a transfer.</p>
+
+      <div class="features-grid-v2">
+
+        <div class="feat-card">
+          <div class="feat-card-icon ic-red">&#128274;</div>
+          <div class="feat-card-title">Zero Server Storage</div>
+          <p class="feat-card-desc">Your files are never uploaded anywhere. Data streams peer-to-peer, device to device, leaving zero trace on any server.</p>
+        </div>
+
+        <div class="feat-card">
+          <div class="feat-card-icon ic-green">&#127758;</div>
+          <div class="feat-card-title">Works Everywhere</div>
+          <p class="feat-card-desc">Home WiFi, different ISPs, mobile data — FileCourier auto-adapts. STUN for direct connections, TURN relay as fallback.</p>
+        </div>
+
+        <div class="feat-card">
+          <div class="feat-card-icon ic-blue">&#128202;</div>
+          <div class="feat-card-title">No File Size Limit</div>
+          <p class="feat-card-desc">Chrome and Edge stream files directly to disk — no RAM limit, no waiting. Other browsers handle up to 512 MB.</p>
+        </div>
+
+        <div class="feat-card">
+          <div class="feat-card-icon ic-purple">&#128272;</div>
+          <div class="feat-card-title">End-to-End Encrypted</div>
+          <p class="feat-card-desc">Every connection is protected by DTLS-SRTP — the same encryption standard used in secure banking and video calls.</p>
+        </div>
+
+        <div class="feat-card">
+          <div class="feat-card-icon ic-yellow">&#11088;</div>
+          <div class="feat-card-title">Free Forever</div>
+          <p class="feat-card-desc">No subscriptions, no credits, no paywalls. Open source under MIT license. Self-host it yourself if you want.</p>
+        </div>
+
+        <div class="feat-card">
+          <div class="feat-card-icon ic-orange">&#128228;</div>
+          <div class="feat-card-title">Send Up to 10 Files</div>
+          <p class="feat-card-desc">Queue up to 10 files at once. Each is offered individually — receiver accepts or declines before bytes flow.</p>
+        </div>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ── How it works (brief) ──────────────────────────────── -->
+  <section class="section" style="background:var(--clr-surface)" aria-labelledby="how-title">
+    <div class="container">
+      <h2 class="section-title" id="how-title">How it works</h2>
+      <p class="section-sub">Three steps, no account, no install. Works in any modern browser.</p>
+
+      <div class="steps-v2-wrap">
+        <div class="steps-v2-grid">
+          <div class="steps-connector" aria-hidden="true"></div>
+
+          <div class="step-v2">
+            <div class="step-v2-num">1</div>
+            <div class="step-v2-icon">&#128228;</div>
+            <div class="step-v2-title">Open FileCourier</div>
+            <p class="step-v2-desc">A unique share link is generated instantly on your device. No login, no setup.</p>
+          </div>
+
+          <div class="step-v2">
+            <div class="step-v2-num">2</div>
+            <div class="step-v2-icon">&#128279;</div>
+            <div class="step-v2-title">Share the link</div>
+            <p class="step-v2-desc">Copy the link and send it via WhatsApp, email, SMS — anything. Add up to 10 files to the queue.</p>
+          </div>
+
+          <div class="step-v2">
+            <div class="step-v2-num">3</div>
+            <div class="step-v2-icon">&#9889;</div>
+            <div class="step-v2-title">File transfers</div>
+            <p class="step-v2-desc">Your friend opens the link, accepts the file, and it streams directly from your device — encrypted, instant.</p>
+          </div>
+        </div>
+
+        <div class="steps-cta">
+          <a href="/how-it-works.html" class="btn btn-secondary">See the full guide &#8594;</a>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Security & Privacy ─────────────────────────────────── -->
+  <section class="trust-section" aria-labelledby="trust-title">
+    <div class="container">
+      <h2 class="section-title" id="trust-title">Built for privacy, by design</h2>
+      <p class="section-sub-dark">No analytics. No cookies. No tracking. What passes through the server is only the handshake — never your file.</p>
+
+      <div class="trust-grid">
+        <div class="trust-item">
+          <div class="trust-item-icon">&#128274;</div>
+          <div class="trust-item-title">File Never Leaves You</div>
+          <p class="trust-item-desc">File data never passes through any server. It goes directly from your browser to theirs.</p>
+        </div>
+        <div class="trust-item">
+          <div class="trust-item-icon">&#128272;</div>
+          <div class="trust-item-title">DTLS-SRTP Encrypted</div>
+          <p class="trust-item-desc">WebRTC mandates DTLS encryption. No one — not even us — can read what's being transferred.</p>
+        </div>
+        <div class="trust-item">
+          <div class="trust-item-icon">&#128683;</div>
+          <div class="trust-item-title">Zero Analytics</div>
+          <p class="trust-item-desc">No tracking scripts, no cookies, no fingerprinting. We don't know who you are or what you sent.</p>
+        </div>
+        <div class="trust-item">
+          <div class="trust-item-icon">&#128100;</div>
+          <div class="trust-item-title">No Account Ever</div>
+          <p class="trust-item-desc">Share a link. That's it. No email, no password, no personal data collected — ever.</p>
+        </div>
+      </div>
+
+      <div style="text-align:center;margin-top:36px">
+        <a href="/privacy.html" class="btn-ghost" style="font-size:.88rem;padding:10px 22px">Read our privacy details &#8594;</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Browser support ───────────────────────────────────── -->
+  <section class="section" aria-labelledby="compat-title">
+    <div class="container">
+      <h2 class="section-title" id="compat-title">Browser Support</h2>
+      <p class="section-sub">P2P transfer works everywhere. Unlimited file sizes require Chrome or Edge.</p>
+
+      <div class="compat-wrap">
+        <table class="compat-table">
+          <thead>
+            <tr>
+              <th>Feature</th>
+              <th>Chrome</th>
+              <th>Edge</th>
+              <th>Firefox</th>
+              <th>Safari</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td>P2P file transfer</td>
+              <td class="compat-ok">&#10003; Yes</td>
+              <td class="compat-ok">&#10003; Yes</td>
+              <td class="compat-ok">&#10003; Yes</td>
+              <td class="compat-ok">&#10003; Yes</td>
+            </tr>
+            <tr>
+              <td>Stream to disk (no RAM limit)</td>
+              <td class="compat-ok">&#10003; Yes</td>
+              <td class="compat-ok">&#10003; Yes</td>
+              <td class="compat-no">&#10007; No</td>
+              <td class="compat-no">&#10007; No</td>
+            </tr>
+            <tr>
+              <td>In-memory fallback (≤ 512 MB)</td>
+              <td class="compat-ok">&#10003; Yes</td>
+              <td class="compat-ok">&#10003; Yes</td>
+              <td class="compat-ok">&#10003; Yes</td>
+              <td class="compat-ok">&#10003; Yes</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <p class="notice mt-12" style="max-width:640px;margin-left:auto;margin-right:auto">
+        Recommendation: use Chrome or Edge when sending or receiving files larger than 512 MB.
       </p>
-      <a href="/app.html" class="hero-cta" data-i18n="heroCta">Start a Transfer</a>
-    </div>
-  </section>
-
-  <!-- ── How it works ──────────────────────────────────────── -->
-  <section class="section" id="how" aria-labelledby="how-title">
-    <div class="container">
-      <h2 class="section-title" id="how-title" data-i18n="howTitle">How it works</h2>
-
-      <div class="steps-grid">
-
-        <div class="step-card">
-          <div class="step-num" aria-hidden="true">1</div>
-          <div class="step-title" data-i18n="step1Title">Open the app</div>
-          <p class="step-desc" data-i18n="step1Desc">
-            Open FileCourier on the device that has the file.
-          </p>
-        </div>
-
-        <div class="step-card">
-          <div class="step-num" aria-hidden="true">2</div>
-          <div class="step-title" data-i18n="step2Title">Share the link</div>
-          <p class="step-desc" data-i18n="step2Desc">
-            Select your file, then copy the generated link and send it to your friend.
-          </p>
-        </div>
-
-        <div class="step-card">
-          <div class="step-num" aria-hidden="true">3</div>
-          <div class="step-title" data-i18n="step3Title">File transfers</div>
-          <p class="step-desc" data-i18n="step3Desc">
-            Your friend opens the link. The file streams directly from your device — no server involved.
-          </p>
-        </div>
-
-      </div>
-    </div>
-  </section>
-
-  <!-- ── Why FileCourier ───────────────────────────────────── -->
-  <section class="section why-section" aria-labelledby="why-title">
-    <div class="container">
-      <h2 class="section-title" id="why-title" data-i18n="whyTitle">Why FileCourier?</h2>
-
-      <div class="features-grid">
-        <div class="feature-item">
-          <span class="feature-icon" aria-hidden="true">&#128274;</span>
-          <span class="feature-text" data-i18n="feat1">Zero server storage</span>
-        </div>
-        <div class="feature-item">
-          <span class="feature-icon" aria-hidden="true">&#127758;</span>
-          <span class="feature-text" data-i18n="feat2">Works on any network</span>
-        </div>
-        <div class="feature-item">
-          <span class="feature-icon" aria-hidden="true">&#128202;</span>
-          <span class="feature-text" data-i18n="feat3">No file size limit</span>
-        </div>
-        <div class="feature-item">
-          <span class="feature-icon" aria-hidden="true">&#128272;</span>
-          <span class="feature-text" data-i18n="feat4">End-to-end encrypted</span>
-        </div>
-        <div class="feature-item">
-          <span class="feature-icon" aria-hidden="true">&#10024;</span>
-          <span class="feature-text" data-i18n="feat5">Free forever</span>
-        </div>
-        <div class="feature-item">
-          <span class="feature-icon" aria-hidden="true">&#128100;</span>
-          <span class="feature-text" data-i18n="feat6">No account needed</span>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- ── FAQ ───────────────────────────────────────────────── -->
-  <section class="section" id="faq" aria-labelledby="faq-title">
-    <div class="container">
-      <h2 class="section-title" id="faq-title" data-i18n="faqTitle">Frequently Asked Questions</h2>
-
-      <div class="faq-list">
-
-        <div class="faq-item">
-          <button class="faq-q" aria-expanded="false">
-            <span data-i18n="faq1q">Does my file get stored anywhere?</span>
-            <i class="faq-chevron" aria-hidden="true">&#9660;</i>
-          </button>
-          <p class="faq-a" data-i18n="faq1a">
-            No. The file is never uploaded to any server. It travels directly between two browsers using WebRTC technology.
-          </p>
-        </div>
-
-        <div class="faq-item">
-          <button class="faq-q" aria-expanded="false">
-            <span data-i18n="faq2q">Does it work across different networks?</span>
-            <i class="faq-chevron" aria-hidden="true">&#9660;</i>
-          </button>
-          <p class="faq-a" data-i18n="faq2a">
-            Yes — for home WiFi-to-WiFi and regular broadband connections worldwide, it works directly in about 90% of cases (no relay needed). For mobile data behind carrier NAT or strict firewalls, the app automatically falls back to a relay server. On a small number of restrictive mobile carriers, relay servers may also be unreachable — switching the mobile device to WiFi fixes this.
-          </p>
-        </div>
-
-        <div class="faq-item">
-          <button class="faq-q" aria-expanded="false">
-            <span data-i18n="faq3q">Is there a file size limit?</span>
-            <i class="faq-chevron" aria-hidden="true">&#9660;</i>
-          </button>
-          <p class="faq-a" data-i18n="faq3a">
-            No limit for Chrome and Edge users (files stream directly to disk). Other browsers support up to 512 MB.
-          </p>
-        </div>
-
-        <div class="faq-item">
-          <button class="faq-q" aria-expanded="false">
-            <span data-i18n="faq4q">Do both people need to be online at the same time?</span>
-            <i class="faq-chevron" aria-hidden="true">&#9660;</i>
-          </button>
-          <p class="faq-a" data-i18n="faq4a">
-            Yes. The sender's tab must stay open until the transfer is complete.
-          </p>
-        </div>
-
-        <div class="faq-item">
-          <button class="faq-q" aria-expanded="false">
-            <span data-i18n="faq5q">What do I do if the connection keeps failing?</span>
-            <i class="faq-chevron" aria-hidden="true">&#9660;</i>
-          </button>
-          <p class="faq-a" data-i18n="faq5a">
-            After 8 seconds, a "Connect via Relay" button appears on the receiver's screen — click it. This reroutes through a relay server and works for most strict or mobile networks. The sender's link stays valid; no need to refresh. If relay also fails, your mobile carrier is likely blocking relay servers — connecting the mobile to WiFi instead of mobile data will resolve it.
-          </p>
-        </div>
-
-      </div>
     </div>
   </section>
 
   <!-- ── CTA strip ─────────────────────────────────────────── -->
-  <section class="cta-strip" aria-label="Call to action">
+  <section class="cta-strip-v2" aria-label="Call to action">
     <div class="container">
-      <h2 class="cta-strip-heading">FileCourier</h2>
-      <p class="cta-strip-sub" data-i18n="heroSub">No cloud. No storage. No size limits.
-Your file goes straight from your device to your friend's.</p>
-      <a href="/app.html" class="btn-white" data-i18n="heroCta">Start a Transfer</a>
+      <p class="cta-v2-title">Ready to send your first file?</p>
+      <p class="cta-v2-sub">No signup. No install. Just open FileCourier, share a link, and transfer.</p>
+      <a href="/app.html" class="btn-hero">Start a Transfer &#8594;</a>
     </div>
   </section>
 
   <!-- ── Footer ────────────────────────────────────────────── -->
-  <footer class="site-footer" aria-label="Footer">
+  <footer class="footer-v2" aria-label="Footer">
     <div class="container">
-      <span data-i18n="footerNote">File travels directly — zero server storage · keep tab open during transfer</span>
-      <nav aria-label="Footer navigation">
-        <a href="#how" data-i18n="howTitle">How it works</a>
-        &nbsp;&middot;&nbsp;
-        <a href="#faq" data-i18n="faqTitle">FAQ</a>
-      </nav>
+      <div class="footer-grid">
+
+        <!-- Brand -->
+        <div>
+          <a href="/" class="footer-logo-link">
+            <img src="assets/img/logo.svg" alt="" class="footer-logo-img" width="28" height="28">
+            FileCourier
+          </a>
+          <p class="footer-tagline">
+            Private P2P file transfers directly between browsers.<br>
+            No cloud. No server storage. No account. Free forever.
+          </p>
+          <a href="/app.html" class="btn btn-primary btn-sm">Start a Transfer &#8594;</a>
+        </div>
+
+        <!-- Navigate -->
+        <div class="footer-col">
+          <div class="footer-col-title">Navigate</div>
+          <a href="/">Home</a>
+          <a href="/how-it-works.html">How it works</a>
+          <a href="/faq.html">FAQ</a>
+          <a href="/privacy.html">Privacy</a>
+        </div>
+
+        <!-- Transfer -->
+        <div class="footer-col">
+          <div class="footer-col-title">Transfer</div>
+          <a href="/app.html">Start a Transfer</a>
+          <a href="/how-it-works.html#relay">Relay Mode</a>
+          <a href="/faq.html#size-limit">File Size Limits</a>
+          <a href="/faq.html#browsers">Browser Support</a>
+        </div>
+
+        <!-- Resources -->
+        <div class="footer-col">
+          <div class="footer-col-title">Resources</div>
+          <a href="/privacy.html">Privacy Policy</a>
+          <a href="/faq.html">Help &amp; FAQ</a>
+          <a href="https://github.com/Kangaeruhito14/FileCourier" target="_blank" rel="noopener">GitHub</a>
+        </div>
+
+      </div>
+
+      <div class="footer-bottom">
+        <span>&#169; 2025 FileCourier. Free &amp; open source under MIT license.</span>
+        <span>No cookies &middot; No analytics &middot; No tracking</span>
+      </div>
     </div>
   </footer>
 
-  <!-- ── Landing-page interactions ─────────────────────────── -->
+  <!-- ── Page scripts ──────────────────────────────────────── -->
   <script>
     document.addEventListener('DOMContentLoaded', function () {
-
       /* Language toggle */
       document.querySelectorAll('.lang-btn').forEach(function (btn) {
         btn.addEventListener('click', function () {
@@ -244,17 +356,6 @@ Your file goes straight from your device to your friend's.</p>
           });
         });
       });
-
-      /* FAQ accordion */
-      document.querySelectorAll('.faq-item').forEach(function (item) {
-        var btn = item.querySelector('.faq-q');
-        if (!btn) { return; }
-        btn.addEventListener('click', function () {
-          var open = item.classList.toggle('open');
-          btn.setAttribute('aria-expanded', open ? 'true' : 'false');
-        });
-      });
-
     });
   </script>
 

@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FAQ — FileCourier</title>
+  <meta name="description" content="Answers to common questions about FileCourier: privacy, file sizes, browser support, network compatibility, and connection troubleshooting.">
+  <link rel="icon" type="image/svg+xml" href="assets/img/logo.svg">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+
+  <!-- ── Header ────────────────────────────────────────────── -->
+  <header class="site-header">
+    <div class="container">
+      <a href="/" class="logo" aria-label="FileCourier home">
+        <img src="assets/img/logo.svg" alt="" class="logo-img" width="30" height="30" aria-hidden="true">
+        FileCourier
+      </a>
+      <div class="header-right">
+        <nav class="header-nav" aria-label="Site navigation">
+          <a href="/how-it-works.html">How it works</a>
+          <a href="/faq.html" style="color:var(--clr-brand)">FAQ</a>
+          <a href="/privacy.html">Privacy</a>
+          <a href="/app.html" class="btn btn-primary btn-sm">Start a Transfer</a>
+        </nav>
+      </div>
+    </div>
+  </header>
+
+  <!-- ── Page hero ─────────────────────────────────────────── -->
+  <section class="page-hero">
+    <div class="container">
+      <div class="page-hero-badge">Help</div>
+      <h1>Frequently Asked Questions</h1>
+      <p class="page-hero-sub">Everything you need to know about using FileCourier — from file sizes to connection troubleshooting.</p>
+    </div>
+  </section>
+
+  <!-- ── FAQ sections ──────────────────────────────────────── -->
+  <section class="section">
+    <div class="container" style="max-width:720px">
+
+      <!-- Privacy -->
+      <h2 class="section-title" style="font-size:1.15rem;text-align:left;margin-bottom:16px">Privacy &amp; Security</h2>
+      <div class="faq-list" style="margin-bottom:48px">
+
+        <div class="faq-item">
+          <button class="faq-q" aria-expanded="false">
+            <span>Does my file get stored on any server?</span>
+            <i class="faq-chevron" aria-hidden="true">&#9660;</i>
+          </button>
+          <p class="faq-a">
+            No. Your file is never uploaded to any server. It travels directly between two browsers using WebRTC's DataChannel — the server only exchanges a small handshake (peer IDs and ICE candidates), then steps aside completely.
+          </p>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-q" aria-expanded="false">
+            <span>Is the transfer encrypted?</span>
+            <i class="faq-chevron" aria-hidden="true">&#9660;</i>
+          </button>
+          <p class="faq-a">
+            Yes. WebRTC mandates DTLS-SRTP encryption on every DataChannel — there is no unencrypted mode. Your file is encrypted in transit regardless of whether it goes direct P2P or through a TURN relay server.
+          </p>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-q" aria-expanded="false">
+            <span>What does the signaling server see?</span>
+            <i class="faq-chevron" aria-hidden="true">&#9660;</i>
+          </button>
+          <p class="faq-a">
+            Only peer IDs and ICE candidates (network path metadata). No file names, no file data, no personal information. After the WebRTC channel opens, the signaling server is no longer involved.
+          </p>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-q" aria-expanded="false">
+            <span>Do you collect any data or analytics?</span>
+            <i class="faq-chevron" aria-hidden="true">&#9660;</i>
+          </button>
+          <p class="faq-a">
+            No. There are zero analytics scripts, zero tracking pixels, zero cookies, and zero fingerprinting on FileCourier. We have no way of knowing who used the service or what was transferred.
+          </p>
+        </div>
+
+      </div>
+
+      <!-- File sizes & browsers -->
+      <h2 class="section-title" style="font-size:1.15rem;text-align:left;margin-bottom:16px" id="size-limit">File Sizes &amp; Browsers</h2>
+      <div class="faq-list" style="margin-bottom:48px" id="browsers">
+
+        <div class="faq-item">
+          <button class="faq-q" aria-expanded="false">
+            <span>Is there a file size limit?</span>
+            <i class="faq-chevron" aria-hidden="true">&#9660;</i>
+          </button>
+          <p class="faq-a">
+            No limit for Chrome and Edge users. Files stream directly to disk using a service worker, so the file never fully loads into RAM — you can transfer 100 GB or more. Firefox and Safari use an in-memory fallback that is capped at 512 MB per file.
+          </p>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-q" aria-expanded="false">
+            <span>Can I send multiple files at once?</span>
+            <i class="faq-chevron" aria-hidden="true">&#9660;</i>
+          </button>
+          <p class="faq-a">
+            Yes — up to 10 files per session. Add them to the queue before or after the receiver connects. Each file is offered individually: the receiver sees the file name, size, and type, and can Accept or Decline. Files are sent sequentially once accepted.
+          </p>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-q" aria-expanded="false">
+            <span>Which browsers does FileCourier support?</span>
+            <i class="faq-chevron" aria-hidden="true">&#9660;</i>
+          </button>
+          <p class="faq-a">
+            P2P transfer works in all modern browsers (Chrome, Edge, Firefox, Safari). Unlimited file sizes require Chrome or Edge (StreamSaver.js service worker). Firefox and Safari support transfers up to 512 MB via the in-memory fallback. We recommend Chrome or Edge for the best experience.
+          </p>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-q" aria-expanded="false">
+            <span>Do both people need to be on the same device type?</span>
+            <i class="faq-chevron" aria-hidden="true">&#9660;</i>
+          </button>
+          <p class="faq-a">
+            No. You can send from a desktop browser to a mobile browser, or any other combination. The only requirement is that both people use a browser that supports WebRTC (all modern browsers do).
+          </p>
+        </div>
+
+      </div>
+
+      <!-- Network & connection -->
+      <h2 class="section-title" style="font-size:1.15rem;text-align:left;margin-bottom:16px">Network &amp; Connection</h2>
+      <div class="faq-list" style="margin-bottom:48px">
+
+        <div class="faq-item">
+          <button class="faq-q" aria-expanded="false">
+            <span>Does it work across different networks?</span>
+            <i class="faq-chevron" aria-hidden="true">&#9660;</i>
+          </button>
+          <p class="faq-a">
+            Yes — for home WiFi-to-WiFi and regular broadband connections worldwide, it works directly in about 90% of cases. For mobile data behind carrier NAT or strict firewalls, the app automatically offers a relay button after 8 seconds. Relay works for most networks. On a small number of restrictive mobile carriers, relay servers may also be unreachable — switching the mobile device to WiFi fixes this immediately.
+          </p>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-q" aria-expanded="false">
+            <span>What is relay mode and when does it activate?</span>
+            <i class="faq-chevron" aria-hidden="true">&#9660;</i>
+          </button>
+          <p class="faq-a">
+            Relay mode routes all traffic through a TURN server when a direct peer-to-peer connection can't be established (e.g., strict NAT or CGNAT). After 8 seconds without a connection, a yellow "Connect via Relay" button appears on the receiver's screen. Clicking it reconnects through the relay — the sender's link stays valid and doesn't need refreshing.
+          </p>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-q" aria-expanded="false">
+            <span>Do both people need to be online at the same time?</span>
+            <i class="faq-chevron" aria-hidden="true">&#9660;</i>
+          </button>
+          <p class="faq-a">
+            Yes. The sender's browser tab must remain open for the entire duration of the transfer. If the sender closes the tab mid-transfer, the connection drops and the receiver cannot continue. The receiver's tab must also stay open while downloading.
+          </p>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-q" aria-expanded="false">
+            <span>What happens if my network changes mid-transfer?</span>
+            <i class="faq-chevron" aria-hidden="true">&#9660;</i>
+          </button>
+          <p class="faq-a">
+            If the receiver switches networks (e.g., from mobile data to WiFi), the app detects the change and automatically attempts to reconnect up to three times. If reconnection succeeds, the connection re-establishes and the sender can offer the files again. If you need to start fresh, the sender's share link remains valid — just refresh the receiver's tab.
+          </p>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-q" aria-expanded="false">
+            <span>What do I do if the connection keeps failing?</span>
+            <i class="faq-chevron" aria-hidden="true">&#9660;</i>
+          </button>
+          <p class="faq-a">
+            After 8 seconds of no connection, a "Connect via Relay" button appears on the receiver's screen — click it. This reroutes through a relay server and works for most strict or mobile networks. The sender's link stays valid; no refresh needed.
+            <br><br>
+            If relay also fails: your mobile carrier is likely blocking relay server IP ranges. The fix is to connect the mobile device to WiFi instead of mobile data — this resolves the issue immediately.
+          </p>
+        </div>
+
+      </div>
+
+      <!-- Usage -->
+      <h2 class="section-title" style="font-size:1.15rem;text-align:left;margin-bottom:16px">Using FileCourier</h2>
+      <div class="faq-list">
+
+        <div class="faq-item">
+          <button class="faq-q" aria-expanded="false">
+            <span>How long does the share link stay valid?</span>
+            <i class="faq-chevron" aria-hidden="true">&#9660;</i>
+          </button>
+          <p class="faq-a">
+            The link is valid as long as the sender's browser tab stays open and connected. If the sender closes the tab or the signaling server connection drops and doesn't recover, the link becomes invalid. The sender can refresh the page to generate a new link.
+          </p>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-q" aria-expanded="false">
+            <span>Can I send the link to multiple people?</span>
+            <i class="faq-chevron" aria-hidden="true">&#9660;</i>
+          </button>
+          <p class="faq-a">
+            Only one receiver can be connected at a time. If a second person opens the link while a transfer is already in progress, they will be unable to connect until the current session ends. After the transfer completes, the sender can click "Send Again" to generate a new session for the next recipient.
+          </p>
+        </div>
+
+        <div class="faq-item">
+          <button class="faq-q" aria-expanded="false">
+            <span>Is FileCourier free to use?</span>
+            <i class="faq-chevron" aria-hidden="true">&#9660;</i>
+          </button>
+          <p class="faq-a">
+            Yes, completely free. No subscriptions, no credits, no paywalls. FileCourier is open source (MIT license). You can also self-host the signaling server on any Node.js host.
+          </p>
+        </div>
+
+      </div>
+
+    </div>
+  </section>
+
+  <!-- ── CTA ───────────────────────────────────────────────── -->
+  <section class="cta-strip-v2">
+    <div class="container">
+      <p class="cta-v2-title">Still have questions?</p>
+      <p class="cta-v2-sub">Open a GitHub issue or just try FileCourier — it takes 10 seconds to start a transfer.</p>
+      <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap">
+        <a href="/app.html" class="btn-hero">Start a Transfer &#8594;</a>
+        <a href="https://github.com/Kangaeruhito14/FileCourier/issues" class="btn-ghost" target="_blank" rel="noopener">Open an issue</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ── Footer ────────────────────────────────────────────── -->
+  <footer class="footer-v2">
+    <div class="container">
+      <div class="footer-grid">
+        <div>
+          <a href="/" class="footer-logo-link">
+            <img src="assets/img/logo.svg" alt="" class="footer-logo-img" width="28" height="28">
+            FileCourier
+          </a>
+          <p class="footer-tagline">Private P2P file transfer. No cloud. No server storage. Free forever.</p>
+          <a href="/app.html" class="btn btn-primary btn-sm">Start a Transfer &#8594;</a>
+        </div>
+        <div class="footer-col">
+          <div class="footer-col-title">Navigate</div>
+          <a href="/">Home</a>
+          <a href="/how-it-works.html">How it works</a>
+          <a href="/faq.html">FAQ</a>
+          <a href="/privacy.html">Privacy</a>
+        </div>
+        <div class="footer-col">
+          <div class="footer-col-title">Transfer</div>
+          <a href="/app.html">Start a Transfer</a>
+          <a href="/how-it-works.html#relay">Relay Mode</a>
+          <a href="#size-limit">File Size Limits</a>
+        </div>
+        <div class="footer-col">
+          <div class="footer-col-title">Resources</div>
+          <a href="/privacy.html">Privacy Policy</a>
+          <a href="/faq.html">Help &amp; FAQ</a>
+          <a href="https://github.com/Kangaeruhito14/FileCourier" target="_blank" rel="noopener">GitHub</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <span>&#169; 2025 FileCourier. Free &amp; open source under MIT license.</span>
+        <span>No cookies &middot; No analytics &middot; No tracking</span>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function () {
+      document.querySelectorAll('.faq-item').forEach(function (item) {
+        var btn = item.querySelector('.faq-q');
+        if (!btn) { return; }
+        btn.addEventListener('click', function () {
+          var open = item.classList.toggle('open');
+          btn.setAttribute('aria-expanded', open ? 'true' : 'false');
+        });
+      });
+    });
+  </script>
+
+</body>
+</html>
