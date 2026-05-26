@@ -17,8 +17,6 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="assets/css/style.css">
 
-  <script src="assets/js/i18n.js" defer></script>
-
   <!-- Backward-compat: old /?to=<id> links forward to /app.html?to=<id> -->
   <script>
     (function () {
@@ -45,10 +43,6 @@
           <a href="/app.html" class="btn btn-primary btn-sm">Start a Transfer</a>
         </nav>
 
-        <div class="lang-toggle" role="group" aria-label="Language">
-          <button class="lang-btn active" data-lang="en" aria-pressed="true">EN</button>
-          <button class="lang-btn" data-lang="bn" aria-pressed="false">&#2476;&#2494;&#2434;</button>
-        </div>
       </div>
     </div>
   </header>
@@ -342,22 +336,6 @@
     </div>
   </footer>
 
-  <!-- ── Page scripts ──────────────────────────────────────── -->
-  <script>
-    document.addEventListener('DOMContentLoaded', function () {
-      /* Language toggle */
-      document.querySelectorAll('.lang-btn').forEach(function (btn) {
-        btn.addEventListener('click', function () {
-          var lang = btn.dataset.lang;
-          FC.setLang(lang);
-          document.querySelectorAll('.lang-btn').forEach(function (b) {
-            b.classList.toggle('active', b.dataset.lang === lang);
-            b.setAttribute('aria-pressed', b.dataset.lang === lang ? 'true' : 'false');
-          });
-        });
-      });
-    });
-  </script>
 
 </body>
 </html>

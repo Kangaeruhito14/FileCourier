@@ -7,7 +7,6 @@
  *   - Cancel: bi-directional {type:'cancel'} message over data channel
  *   - ICE monitoring: relay hint after FC.ICE_RELAY_HINT_MS, force-relay retry
  *   - Auto-reconnect: receiver retries on unexpected connection drop / network change
- *   - Bilingual: every dynamic string goes through FC.t(); FC.onLangChange re-renders
  *
  * Requires (in load order): PeerJS CDN, StreamSaver CDN, config.js, i18n.js
  * Namespace: window.FC (extended, not replaced)
@@ -59,8 +58,6 @@
 
   /* ── Boot ──────────────────────────────────────────────────── */
   document.addEventListener('DOMContentLoaded', function () {
-    wireLanguageToggle();
-
     var targetId = new URLSearchParams(location.search).get('to');
     isSender = !targetId;
 
@@ -100,23 +97,6 @@
       });
     }
   });
-
-  FC.onLangChange = function () {
-    if (typeof _renderView === 'function') { _renderView(); }
-  };
-
-  /* ── Language toggle ───────────────────────────────────────── */
-  function wireLanguageToggle() {
-    document.querySelectorAll('.lang-btn').forEach(function (btn) {
-      btn.addEventListener('click', function () {
-        var lang = btn.dataset.lang;
-        FC.setLang(lang);
-        document.querySelectorAll('.lang-btn').forEach(function (b) {
-          b.classList.toggle('active', b.dataset.lang === lang);
-        });
-      });
-    });
-  }
 
   /* ── PeerJS factory ────────────────────────────────────────── */
   function buildPeerOptions() {
