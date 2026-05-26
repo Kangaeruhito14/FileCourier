@@ -22,7 +22,6 @@ FileCourier lets two people transfer a file of any size directly between their b
 - **No account needed** — share one link, start transferring
 - **Transfer controls** — both sender and receiver can cancel at any time
 - **Cross-network** — works through NAT, hotspots, and most firewalls via automatic TURN relay fallback
-- **Bilingual UI** — English + Bengali (বাংলা), switchable at any time
 - **Mobile-friendly** — responsive layout, works on phones and tablets
 
 ---
@@ -44,8 +43,8 @@ FileCourier lets two people transfer a file of any size directly between their b
 Sender browser                         Receiver browser
       │                                       │
       │  ① Register peer ID                   │
-      ├──────────────────────────────────────►│  filecourier.onrender.com
-      │         PeerJS signaling server       │  (Node.js, PeerJS v1)
+      ├──────────────────────────────────────►│  0.peerjs.com
+      │         PeerJS signaling server       │  (PeerJS public cloud)
       │                                       │
       │  ② ICE candidate exchange             │
       │◄─────────────────────────────────────►│  (metadata only, ~200 bytes total)
@@ -146,7 +145,7 @@ FileCourier/
 │   │   └── style.css       # Full design system (CSS custom properties, all components)
 │   └── js/
 │       ├── config.js       # All tunable constants: TURN servers, timeouts, chunk sizes
-│       ├── i18n.js         # Bilingual strings — EN + BN; FC.t(), FC.setLang()
+│       ├── i18n.js         # UI strings — FC.t() lookup used by app.js
 │       └── app.js          # P2P transfer controller (~960 lines)
 └── peerserver/
     ├── index.js            # PeerJS signaling server (deploy to Render.com)
@@ -159,7 +158,7 @@ FileCourier/
 
 **Deferred load order** — `app.html` loads scripts with `defer` in this order: PeerJS CDN → StreamSaver CDN → `config.js` → `i18n.js` → `app.js`. `DOMContentLoaded` fires after all deferred scripts have executed, guaranteeing all `FC.*` constants exist before `app.js` runs.
 
-**Backpressure** — before sending each 64 KB chunk, `app.js` checks `dc.bufferedAmount`. If it exceeds `FC.BUFFER_HIGH` (8 MB), sending pauses until the `bufferedamountlow` event fires. This prevents out-of-memory errors on the sender for very large files.
+**Backpressure** — before sending each 64 KB chunk, `app.js` checks `dc.bufferedAmount`. If it exceeds `FC.BUFFER_HIGH` (2 MB), sending pauses until the `bufferedamountlow` event fires. This prevents out-of-memory errors on the sender for very large files.
 
 **ICE timer placement** — the relay hint timer starts when a connection *attempt* is made (not when the connection opens). This is critical: if ICE fails, the `open` event never fires, so the timer must be started before it.
 
@@ -177,20 +176,21 @@ FileCourier/
 4. Deploy — Netlify provides HTTPS automatically
 5. Every `git push` to `main` triggers a redeployment
 
-### Signaling server — Render.com (free tier)
+### Signaling server
 
-The `peerserver/` directory is a minimal Node.js PeerJS signaling server. It only brokers peer discovery — it never sees file data.
+The deployed site uses the **PeerJS public cloud** (`0.peerjs.com`) — no setup needed. `FC.PEER_HOST` is set to `''` in `config.js`, which tells the app to use it automatically.
+
+#### Optional: self-hosted signaling server
+
+The `peerserver/` directory contains a minimal Node.js PeerJS server if you want to self-host (private deployment, guaranteed uptime, no dependency on the public cloud):
 
 1. On [Render.com](https://render.com): **New → Web Service**
 2. Connect your GitHub repo; set **Root Directory** to `peerserver`
-3. Build command: `npm install`
-4. Start command: `npm start`
-5. Plan: **Free**
-6. After deploy, Render gives you a URL like `https://your-app.onrender.com`
-7. In `assets/js/config.js`, set: `FC.PEER_HOST = 'your-app.onrender.com';`
-8. Commit and push — Netlify redeploys automatically
+3. Build command: `npm install` — Start command: `npm start`
+4. After deploy, you'll get a URL like `https://your-app.onrender.com`
+5. In `assets/js/config.js`, set: `FC.PEER_HOST = 'your-app.onrender.com';`
 
-> **Render free tier note:** The server spins down after 15 minutes of inactivity. The first connection after a cold start may take 20–30 seconds while Render wakes it up. The app detects this (503 error) and retries automatically — the user sees "Reconnecting to server..." briefly, then continues normally.
+> **Note:** Render's free tier spins down after 15 minutes of inactivity — first connection after a cold start can take 20–30 seconds. Only use a custom host if it's always-on (paid tier or self-managed VPS).
 
 ---
 
@@ -200,7 +200,7 @@ All constants live in `assets/js/config.js` and are documented inline:
 
 ```js
 /* ── Signaling server ──────────────────────────────────────── */
-FC.PEER_HOST   = 'filecourier.onrender.com';  // Set to your Render URL
+FC.PEER_HOST   = '';     // '' = PeerJS public cloud; set to your Render URL to self-host
 FC.PEER_PORT   = 443;
 FC.PEER_PATH   = '/peerjs';
 FC.PEER_SECURE = true;
@@ -208,7 +208,7 @@ FC.PEER_DEBUG  = 0;  // 0 = silent | 1 = errors | 2 = warnings | 3 = verbose
 
 /* ── Transfer ──────────────────────────────────────────────── */
 FC.CHUNK_SIZE   = 65536;              // 64 KB per DataChannel send
-FC.BUFFER_HIGH  = 8 * 1024 * 1024;   // Pause sending above 8 MB buffered
+FC.BUFFER_HIGH  = 2 * 1024 * 1024;   // Pause sending above 2 MB buffered
 FC.FALLBACK_MAX = 512 * 1024 * 1024; // In-memory Blob cap (non-Chrome browsers)
 
 /* ── Timeouts ──────────────────────────────────────────────── */
@@ -238,21 +238,9 @@ These are sufficient for the vast majority of users. If you need guaranteed rela
 
 ---
 
-## Languages
+## Strings
 
-All UI strings are in `assets/js/i18n.js`. Current locales: `en` (English), `bn` (Bengali / বাংলা).
-
-API:
-
-```js
-FC.t('key')           // translate key in active locale
-FC.t('key', 'value')  // replace single {v} placeholder
-FC.setLang('bn')      // switch locale and update all data-i18n elements
-FC.getLang()          // returns active locale code
-FC.onLangChange       // assign a function — called after every locale switch
-```
-
-To add a new locale, add a matching key block under a new locale code in `_T` and add a language button in `app.html` / `index.html`.
+All UI strings used by `app.js` are in `assets/js/i18n.js`. The site is English-only. The `FC.t('key')` API is used throughout `app.js` to look up strings — edit `i18n.js` to change any displayed text.
 
 ---
 
